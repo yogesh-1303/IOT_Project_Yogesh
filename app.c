@@ -86,8 +86,22 @@ SL_WEAK void app_init(void)
 
 
   // Student Edit: Add a call to gpioInit() here
-  
   gpioInit();
+  
+  Init_CMU();
+
+  Configure_CMU();
+
+  Timer_init();
+
+  Timer_load();
+
+  Timer_Onoff(true);
+
+  NVIC_ClearPendingIRQ(LETIMER0_IRQn);
+  NVIC_EnableIRQ(LETIMER0_IRQn);
+
+  Timer_InterruptEnable();
 
 
 }
@@ -123,7 +137,8 @@ SL_WEAK void app_process_action(void)
   //         We will create/use a scheme that is far more energy efficient in
   //         later assignments.
 
-  delayApprox(3500000);
+  /*
+
 
   gpioLed0SetOn();
   gpioLed1SetOn();
@@ -131,7 +146,12 @@ SL_WEAK void app_process_action(void)
   delayApprox(3500000);
 
   gpioLed0SetOff();
-  gpioLed1SetOff();
+  gpioLed1SetOff();*/
+
+
+  //Timer_Printcount();
+
+
 
 }
 

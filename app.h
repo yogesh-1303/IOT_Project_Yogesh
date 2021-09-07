@@ -51,6 +51,10 @@
 #include "src/gpio.h"
 #include "src/lcd.h"
 
+#include "src/oscillators.h"
+#include "src/timers.h"
+#include "src/irq.h"
+
 
 
 // See: https://docs.silabs.com/gecko-platform/latest/service/power_manager/overview

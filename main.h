@@ -28,6 +28,7 @@
 
 #include "app.h"
 
+
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
 #include "sl_power_manager.h"
 #endif // SL_CATALOG_POWER_MANAGER_PRESENT
