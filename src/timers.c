@@ -7,14 +7,12 @@
 
 #include "timers.h"
 
-/*
+
 #if(LOWEST_ENERGY_MODE==3)
 #define CLOCK_FREQ (1000)
 #else
 #define CLOCK_FREQ (32768)
-#endif*/
-
-#define CLOCK_FREQ (32768)
+#endif
 
 #define PRESCALER (4)
 #define ACTUAL_CLK_FREQ (CLOCK_FREQ/PRESCALER)

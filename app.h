@@ -60,10 +60,10 @@
 // See: https://docs.silabs.com/gecko-platform/latest/service/power_manager/overview
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
 
-#define LOWEST_ENERGY_MODE (0)
+//#define LOWEST_ENERGY_MODE (0)
 //#define LOWEST_ENERGY_MODE (1)
 //#define LOWEST_ENERGY_MODE (2)
-//#define LOWEST_ENERGY_MODE (3)
+#define LOWEST_ENERGY_MODE (3)
 
 #define LETIMER_ON_TIME_MS (175)
 

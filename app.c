@@ -84,8 +84,6 @@ SL_WEAK void app_init(void)
   // This is called once during start-up.
   // Don't call any Bluetooth API functions until after the boot event.
 
-
-  // Student Edit: Add a call to gpioInit() here
   gpioInit();
   
   Init_CMU();
@@ -103,7 +101,7 @@ SL_WEAK void app_init(void)
 
   Timer_Onoff(true);
 
-  int temp=CMU_ClockFreqGet(cmuClock_LETIMER0);
+  //int temp=CMU_ClockFreqGet(cmuClock_LETIMER0);
 
 }
 
@@ -138,19 +136,7 @@ SL_WEAK void app_process_action(void)
   //         We will create/use a scheme that is far more energy efficient in
   //         later assignments.
 
-  /*
 
-
-  gpioLed0SetOn();
-  gpioLed1SetOn();
-
-  delayApprox(3500000);
-
-  gpioLed0SetOff();
-  gpioLed1SetOff();*/
-
-
-  //Timer_Printcount();
 
 
 

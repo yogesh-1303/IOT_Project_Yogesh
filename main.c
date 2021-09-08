@@ -85,9 +85,9 @@ int main(void)
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
 
 #if(LOWEST_ENERGY_MODE==1 || LOWEST_ENERGY_MODE==2 )
-    sl_power_manage_add_em_requirement(LOWEST_ENERGY_MODE);
+    sl_power_manager_add_em_requirement(LOWEST_ENERGY_MODE);
     sl_power_manager_sleep();// Let the CPU go to sleep if the system allows it.
-    sl_power_manage_remove_em_requirement(LOWEST_ENERGY_MODE);
+    sl_power_manager_remove_em_requirement(LOWEST_ENERGY_MODE);
 #else
     sl_power_manager_sleep();// Let the CPU go to sleep if the system allows it.
 #endif
