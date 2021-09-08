@@ -96,13 +96,14 @@ SL_WEAK void app_init(void)
 
   Timer_load();
 
-  Timer_Onoff(true);
-
   NVIC_ClearPendingIRQ(LETIMER0_IRQn);
   NVIC_EnableIRQ(LETIMER0_IRQn);
 
   Timer_InterruptEnable();
 
+  Timer_Onoff(true);
+
+  int temp=CMU_ClockFreqGet(cmuClock_LETIMER0);
 
 }
 

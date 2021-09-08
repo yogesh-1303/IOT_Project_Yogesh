@@ -10,6 +10,7 @@
 
 #include <stdbool.h>
 #include <string.h>
+#include "app.h"
 #include "em_cmu.h"
 
 

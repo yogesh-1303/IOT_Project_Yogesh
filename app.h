@@ -60,6 +60,17 @@
 // See: https://docs.silabs.com/gecko-platform/latest/service/power_manager/overview
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
 
+#define LOWEST_ENERGY_MODE (0)
+//#define LOWEST_ENERGY_MODE (1)
+//#define LOWEST_ENERGY_MODE (2)
+//#define LOWEST_ENERGY_MODE (3)
+
+#define LETIMER_ON_TIME_MS (175)
+
+#define LETIMER_PERIOD_MS (2250)
+
+
+
 // -----------------------------------------------------------------------------
 // defines for power manager callbacks
 // -----------------------------------------------------------------------------
@@ -69,8 +80,18 @@
 //   up the MCU from the call to sl_power_manager_sleep() in the main while (1)
 //   loop.
 // Students: We'll need to modify this for A2 onward.
+
+#if(LOWEST_ENERGY_MODE==0)
 #define APP_IS_OK_TO_SLEEP      (false)
+#else
+#define APP_IS_OK_TO_SLEEP      (true)
+#endif
+
+//#define APP_IS_OK_TO_SLEEP      (false)
 //#define APP_IS_OK_TO_SLEEP      (true)
+
+
+
 
 // Return values for app_sleep_on_isr_exit():
 //   SL_POWER_MANAGER_IGNORE; // The module did not trigger an ISR and it doesn't want to contribute to the decision

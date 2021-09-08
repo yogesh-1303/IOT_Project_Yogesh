@@ -9,24 +9,24 @@
 
 void LETIMER0_IRQHandler(void){
 
-
-  if (LETIMER0->IF & 0x01){
-
-      //gpioLed0SetOn();
-
-      gpioLed0SetOff();
-
-  }
-
-  else if (LETIMER0->IF & 0x02){
+  /*
+  if (LETIMER0->IF & LETIMER_IF_COMP0){
 
       gpioLed0SetOn();
 
-  }
+      //gpioLed0SetOff();
 
-  else if (LETIMER0->IF & 0x04){
+  }*/
+
+  if (LETIMER0->IF & LETIMER_IF_COMP1){
 
       gpioLed0SetOff();
+
+  }
+
+  else if (LETIMER0->IF & LETIMER_IF_UF){
+
+      gpioLed0SetOn();
 
   }
 
