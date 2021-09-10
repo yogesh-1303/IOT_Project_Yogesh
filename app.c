@@ -35,6 +35,8 @@
  *
  ******************************************************************************/
 
+// Attributes - Prof.David Sluiter IOT and Embedded Firmware Lecture 5 & Lecture 6
+
 
 #include "app.h"
 
@@ -80,28 +82,41 @@ sl_power_manager_on_isr_exit_t app_sleep_on_isr_exit(void)
  *****************************************************************************/
 SL_WEAK void app_init(void)
 {
+  int temp_freq;
   // Put your application 1-time init code here
   // This is called once during start-up.
   // Don't call any Bluetooth API functions until after the boot event.
 
+  // Initilaize GPIO by setting strength
   gpioInit();
   
+  // Initializes CMU by enabling and selecting appropriate oscillators
   Init_CMU();
 
+  // Configures CMU by enabling and prescaling appropriate clocks
   Configure_CMU();
 
+  // Initialize LETIMER by setting various bit field in LETIMER0_CTRL register
   Timer_init();
 
+  // Load vale into comp0 & comp1 register
   Timer_load();
 
+  // Clear pending LETIMER0 Interrupts in NVIC
   NVIC_ClearPendingIRQ(LETIMER0_IRQn);
+
+  // Enable LETIMER0 Interrupt in NVIC
   NVIC_EnableIRQ(LETIMER0_IRQn);
 
+  // Enable required interrupts of LETIMER0
   Timer_InterruptEnable();
 
+  //Start timer
   Timer_Onoff(true);
 
-  //int temp=CMU_ClockFreqGet(cmuClock_LETIMER0);
+  // Log info to check if correct frequency is set
+  temp_freq=CMU_ClockFreqGet(cmuClock_LETIMER0);
+  LOG_INFO("LETIMER0 CLOCK FREQUENCY :%d for mode EM%d",(uint32_t)temp_freq,LOWEST_ENERGY_MODE);
 
 }
 

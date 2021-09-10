@@ -1,5 +1,14 @@
+/*
+ * oscillators.c - Source file containing implementation of CMU functionality
+ *
+ *
+ */
+
+
 #include "oscillators.h"
 
+// Macro definition for clock prescaling value
+#define CLK_PRESCALER (4)
 
 #if(LOWEST_ENERGY_MODE==3)
 #define OSC_TYPE (cmuOsc_ULFRCO)
@@ -10,7 +19,11 @@
 #endif
 
 
-
+/* Function that initializes CMU by enabling and selecting appropriate oscillators
+ * PARAMETERS : NONE
+ * RETURNS    : NONE
+ *
+ */
 void Init_CMU(void){
 
   // Enable the oscillator
@@ -21,16 +34,21 @@ void Init_CMU(void){
 
 }
 
+
+/* Function that configures CMU by enabling and prescaling appropriate clocks
+ * PARAMETERS : NONE
+ * RETURNS    : NONE
+ */
 void Configure_CMU(void){
 
+  // Enable LFA CLock tree
   CMU_ClockEnable(cmuClock_LFA,true);
 
   // Prescaling of clock
-  CMU_ClockDivSet(cmuClock_LETIMER0,4);
+  CMU_ClockDivSet(cmuClock_LETIMER0,CLK_PRESCALER);
 
 
   // Enabling the peripheral clock
   CMU_ClockEnable(cmuClock_LETIMER0,true);
-
 
 }

@@ -1,8 +1,7 @@
 /*
- * irq.h
+ * irq.h - Header file for implementation of LETIMER IRQ Handler
+ * Attributes - Prof.David Sluiter IOT and Embedded Firmware Lecture 5 & Lecture 6
  *
- *  Created on: 07-Sep-2021
- *      Author: Shrikant
  */
 
 #ifndef SRC_IRQ_H_
@@ -17,6 +16,11 @@
 #include "efr32bg13p632f512gm48.h"
 
 
+
+/* Function that Implements LETIMER0 IRQ Handler
+ * PARAMETERS : NONE
+ * RETURNS    : NONE
+ */
 void LETIMER0_IRQHandler(void);
 
 

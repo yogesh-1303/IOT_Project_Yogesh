@@ -46,7 +46,7 @@
 #include "src/log.h"
 
 
-
+// Attributes - Prof.David Sluiter IOT and Embedded Firmware Lecture 5 & Lecture 6
 
 
 int main(void)
@@ -83,6 +83,8 @@ int main(void)
     app_process_action();
 
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
+
+/*Add or Remove energy requirement according to energy mode */
 
 #if(LOWEST_ENERGY_MODE==1 || LOWEST_ENERGY_MODE==2 )
     sl_power_manager_add_em_requirement(LOWEST_ENERGY_MODE);

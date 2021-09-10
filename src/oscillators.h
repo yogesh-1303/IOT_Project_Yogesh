@@ -1,8 +1,8 @@
 /*
- * oscillators.h
+ * oscillators.h - Header file for implementation of CMU functionality
+ * Attributes - Prof.David Sluiter IOT and Embedded Firmware Lecture 5 & Lecture 6
  *
- *  Created on: 06-Sep-2021
- *      Author: Shrikant
+ *
  */
 
 #ifndef SRC_OSCILLATORS_H_
@@ -13,9 +13,17 @@
 #include "app.h"
 #include "em_cmu.h"
 
-
+/* Function that initializes CMU by enabling and selecting appropriate oscillators
+ * PARAMETERS : NONE
+ * RETURNS    : NONE
+ *
+ */
 void Init_CMU(void);
 
+/* Function that configures CMU by enabling and prescaling appropriate clocks
+ * PARAMETERS : NONE
+ * RETURNS    : NONE
+ */
 void Configure_CMU(void);
 
 

@@ -60,13 +60,17 @@
 // See: https://docs.silabs.com/gecko-platform/latest/service/power_manager/overview
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
 
+/*Macro Definition for Energy Mode Selection*/
+
 //#define LOWEST_ENERGY_MODE (0)
 //#define LOWEST_ENERGY_MODE (1)
 //#define LOWEST_ENERGY_MODE (2)
 #define LOWEST_ENERGY_MODE (3)
 
+// Macro Definition for LED ON time period
 #define LETIMER_ON_TIME_MS (175)
 
+// Macro Definition for Total LED blink period
 #define LETIMER_PERIOD_MS (2250)
 
 
@@ -81,15 +85,13 @@
 //   loop.
 // Students: We'll need to modify this for A2 onward.
 
+// Set APP_IS_OK_TO_SLEEP according to  energy modes
+
 #if(LOWEST_ENERGY_MODE==0)
 #define APP_IS_OK_TO_SLEEP      (false)
 #else
 #define APP_IS_OK_TO_SLEEP      (true)
 #endif
-
-//#define APP_IS_OK_TO_SLEEP      (false)
-//#define APP_IS_OK_TO_SLEEP      (true)
-
 
 
 
