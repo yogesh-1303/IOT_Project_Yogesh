@@ -62,10 +62,10 @@
 
 /*Macro Definition for Energy Mode Selection*/
 
-//#define LOWEST_ENERGY_MODE (0)
+#define LOWEST_ENERGY_MODE (0)
 //#define LOWEST_ENERGY_MODE (1)
 //#define LOWEST_ENERGY_MODE (2)
-#define LOWEST_ENERGY_MODE (3)
+//#define LOWEST_ENERGY_MODE (3)
 
 // Macro Definition for LED ON time period
 #define LETIMER_ON_TIME_MS (175)

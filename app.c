@@ -82,7 +82,7 @@ sl_power_manager_on_isr_exit_t app_sleep_on_isr_exit(void)
  *****************************************************************************/
 SL_WEAK void app_init(void)
 {
-  int temp_freq;
+  //int temp_freq;
   // Put your application 1-time init code here
   // This is called once during start-up.
   // Don't call any Bluetooth API functions until after the boot event.
@@ -114,9 +114,13 @@ SL_WEAK void app_init(void)
   //Start timer
   Timer_Onoff(true);
 
+#if(LOWEST_ENERGY_MODE==1 || LOWEST_ENERGY_MODE==2 )
+    sl_power_manager_add_em_requirement(LOWEST_ENERGY_MODE);
+#endif
+
   // Log info to check if correct frequency is set
-  temp_freq=CMU_ClockFreqGet(cmuClock_LETIMER0);
-  LOG_INFO("LETIMER0 CLOCK FREQUENCY :%d for mode EM%d",(uint32_t)temp_freq,LOWEST_ENERGY_MODE);
+  //temp_freq=CMU_ClockFreqGet(cmuClock_LETIMER0);
+  //LOG_INFO("LETIMER0 CLOCK FREQUENCY :%d for mode EM%d",(uint32_t)temp_freq,LOWEST_ENERGY_MODE);
 
 }
 

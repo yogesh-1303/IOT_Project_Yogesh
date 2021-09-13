@@ -100,11 +100,11 @@ void Timer_Onoff(bool state){
 void Timer_Printcount(){
 
 
-  uint32_t temp;
+  //uint32_t temp;
 
   // Log Timer Count for debug purpose
-  temp=LETIMER_CounterGet(LETIMER0);
-  LOG_INFO("\nCurrent Timer Count is %d",(uint32_t)temp);
+  //temp=LETIMER_CounterGet(LETIMER0);
+  //LOG_INFO("\nCurrent Timer Count is %d",(uint32_t)temp);
 
 
 }
