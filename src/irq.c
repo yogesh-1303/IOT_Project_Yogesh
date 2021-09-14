@@ -15,14 +15,16 @@ void LETIMER0_IRQHandler(void){
   // Check if COMP1 Interrupt flag is set
   if (LETIMER0->IF & LETIMER_IF_COMP1){
 
-      gpioLed0SetOff();
+      //gpioLed0SetOff();
+      schedulerSetCOMP1Event();
 
   }
 
   // Check if Underflow Interrupt flag is set
   else if (LETIMER0->IF & LETIMER_IF_UF){
 
-      gpioLed0SetOn();
+      //gpioLed0SetOn();
+      schedulerSetUFEvent();
 
   }
 

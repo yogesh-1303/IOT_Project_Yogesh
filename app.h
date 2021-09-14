@@ -57,6 +57,11 @@
 
 
 
+#define evtLETIMER0_COMP1 (1)
+
+#define evtLETIMER0_UF (2)
+
+
 // See: https://docs.silabs.com/gecko-platform/latest/service/power_manager/overview
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
 
@@ -71,7 +76,7 @@
 #define LETIMER_ON_TIME_MS (175)
 
 // Macro Definition for Total LED blink period
-#define LETIMER_PERIOD_MS (2250)
+#define LETIMER_PERIOD_MS (3000)
 
 
 

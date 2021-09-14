@@ -42,6 +42,7 @@
 
 // Include logging for this file
 #define INCLUDE_LOG_DEBUG 1
+
 #include "src/log.h"
 
 
@@ -109,7 +110,7 @@ SL_WEAK void app_init(void)
   NVIC_EnableIRQ(LETIMER0_IRQn);
 
   // Enable required interrupts of LETIMER0
-  Timer_InterruptEnable();
+  //Timer_InterruptEnable();
 
   //Start timer
   Timer_Onoff(true);
@@ -121,6 +122,8 @@ SL_WEAK void app_init(void)
   // Log info to check if correct frequency is set
   //temp_freq=CMU_ClockFreqGet(cmuClock_LETIMER0);
   //LOG_INFO("LETIMER0 CLOCK FREQUENCY :%d for mode EM%d",(uint32_t)temp_freq,LOWEST_ENERGY_MODE);
+
+    LOG_INFO("\rHELLO");
 
 }
 
@@ -155,7 +158,36 @@ SL_WEAK void app_process_action(void)
   //         We will create/use a scheme that is far more energy efficient in
   //         later assignments.
 
+  /*
+  uint32_t event;
 
+  event=getNextEvent();
+
+  switch(event){
+
+    case evtLETIMER0_UF:{
+
+        gpioLed0SetOn();
+        break;
+    }
+
+    case evtLETIMER0_COMP1:{
+
+        gpioLed0SetOff();
+        break;
+     }
+
+    default: break;
+
+  }*/
+
+  gpioLed0SetOn();
+
+  timerWaitUs(4000000);
+
+  gpioLed0SetOff();
+
+  timerWaitUs(4000000);
 
 
 

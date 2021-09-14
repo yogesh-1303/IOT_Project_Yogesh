@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <assert.h>
+#include "src/log.h"
 #include "app.h"
 #include "log.h"
 #include "em_letimer.h"
@@ -36,6 +38,13 @@ void Timer_load();
  *
  */
 void Timer_Onoff(bool state);
+
+
+
+
+void timerWaitUs(uint32_t us_wait);
+
+
 
 /* Function to print LETIMER0 counter value
  * PARAMETERS : NONE

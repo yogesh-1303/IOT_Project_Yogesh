@@ -7,6 +7,9 @@
 
 #include "timers.h"
 
+// Include logging for this file
+#define INCLUDE_LOG_DEBUG 1
+
 /*Macro definition to select appropriate clock frequency macro depending on energy mode*/
 
 #if(LOWEST_ENERGY_MODE==3)
@@ -17,14 +20,18 @@
 
 // Macro definition for Clock Prescaler
 #define PRESCALER (4)
-#define ACTUAL_CLK_FREQ (CLOCK_FREQ/PRESCALER)
+#define ACTUAL_CLK_FREQ ((uint32_t) (CLOCK_FREQ) / (PRESCALER))
 
 // Macro definition for Compare Register 1 Value
-#define COMPARE1_VALUE ((LETIMER_PERIOD_MS*ACTUAL_CLK_FREQ)/1000)
+//#define COMPARE1_VALUE ((LETIMER_PERIOD_MS*ACTUAL_CLK_FREQ)/1000)
+#define COMPARE1_VALUE (65535)
 
 // Macro definition for Compare Register 2 Value
 #define COMPARE2_VALUE (COMPARE1_VALUE-((LETIMER_ON_TIME_MS*ACTUAL_CLK_FREQ)/1000))
 //#define COMPARE2_VALUE ((LETIMER_ON_TIME_MS*ACTUAL_CLK_FREQ)/1000)
+
+#define DEBUG1 1
+
 
 
 /* Function that initializes LETIMER by setting various bit field in LETIMER0_CTRL register
@@ -37,15 +44,15 @@ void Timer_init(){
 
   const LETIMER_Init_TypeDef LEINIT = {
     .enable   = false,                       //Don't start counting upon init
-    .debugRun = false,                       //Freeze timer in debug
-    .comp0Top = true,                        //Load comp0 as top value
+    .debugRun = true,                       //Freeze timer in debug
+    .comp0Top = false,                        //Load comp0 as top value
     .bufTop   = false,                       //Write comp0 only by software
     .out0Pol  = 0,                           //Low polarity of output1
     .out1Pol  = 0,                           //Low polarity of output2
     .ufoa0    = letimerUFOANone,             //No action on underflow
     .ufoa1    = letimerUFOANone,             //No action on underflow
     .repMode  = letimerRepeatFree,           //Stop timer by software
-    .topValue = 0xFFFF,
+    .topValue = 65535,
     };
 
     /* Initialize LETIMER */
@@ -118,6 +125,51 @@ void Timer_InterruptEnable(){
 
   // Enable Comp0 Comp1 and Underflow Interrupts
   LETIMER_IntEnable(LETIMER0,LETIMER_IEN_COMP0 |LETIMER_IEN_COMP1 |LETIMER_IEN_UF);
+
+}
+
+void timerWaitUs(uint32_t us_wait){
+
+   uint32_t sec_wait=us_wait/1000000;
+
+   uint32_t total_ticks = (sec_wait*(ACTUAL_CLK_FREQ));
+
+
+  uint32_t now_count;
+  uint32_t current_count;
+
+  // Range Check
+  if(total_ticks > 0xFFFF){
+
+      //LOG
+      exit(-1);
+
+  }
+
+  now_count=LETIMER_CounterGet(LETIMER0);
+
+
+  // Roll over logic
+  if(now_count < total_ticks){
+
+      //while((current_count=LETIMER_CounterGet(LETIMER0)) != 0);
+      //while((current_count=LETIMER_CounterGet(LETIMER0)) < now_count);
+
+      //while((LETIMER_CounterGet(LETIMER0)) < now_count){
+      while((current_count=LETIMER_CounterGet(LETIMER0)) !=0);
+
+
+      while((LETIMER_CounterGet(LETIMER0)) >= ((0XFFFF)-(total_ticks-now_count)));
+
+
+  }
+
+  else {
+
+      //while((current_count=LETIMER_CounterGet(LETIMER0)) >= (now_count-total_ticks));
+      while((LETIMER_CounterGet(LETIMER0)) >= (now_count-total_ticks));
+
+  }
 
 }
 
