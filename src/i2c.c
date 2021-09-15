@@ -42,7 +42,10 @@ void I2C_init(void){
 
 uint8_t* I2C_Read_Si7021(void){
 
-  static uint8_t temp_data[1];
+  //static uint8_t temp_data[1];
+  //static uint8_t temp_data[2];
+
+  uint8_t *temp_data=(uint8_t*)malloc(sizeof(uint8_t)*2);
 
   I2C_TransferReturn_TypeDef check_transfer;
 
@@ -52,14 +55,16 @@ uint8_t* I2C_Read_Si7021(void){
       .addr = (0x40)<<1,
       .flags = I2C_FLAG_READ,
       .buf[0].data = temp_data,
-      .buf[0].len = 1,
+      .buf[0].len = sizeof(temp_data),
 
 
   };
 
   while((check_transfer=I2CSPM_Transfer(I2C0,&read)) == i2cTransferNack);
 
-  temp_data[0] = *(read.buf[0].data);
+  temp_data[0] = (read.buf[0].data[0]);
+
+  temp_data[1] = (read.buf[0].data[1]);
 
   return temp_data;
 
@@ -87,6 +92,10 @@ bool I2C_Write_Si7021(void){
   };
 
   check_transfer=I2CSPM_Transfer(I2C0,&write);
+
+
+  timerWaitUs(10800);
+
 
   //while((check_transfer=I2CSPM_Transfer(I2C0,&write)) == i2cTransferNack);
 
@@ -147,7 +156,9 @@ bool I2C_Write_Si7021(void){
 
 uint8_t read_temp_si7021(void){
 
-  uint8_t* temp_data;
+  //uint8_t* temp_data;
+
+  uint8_t *temp_d;
 
   uint8_t temp =0;
 
@@ -157,16 +168,16 @@ uint8_t read_temp_si7021(void){
 
   GPIO_PinOutSet(gpioPortD,15);
 
-  timerWaitUs(90000);
+  timerWaitUs(80000);
 
 
   if(I2C_Write_Si7021() == true){
 
-      temp_data = I2C_Read_Si7021();
+      temp_d = I2C_Read_Si7021();
 
   }
 
-  temp=*temp_data;
+  temp=temp_d[0]+temp_d[1];
 
   GPIO_PinOutClear(gpioPortD,15);
 
