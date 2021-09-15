@@ -51,6 +51,8 @@ uint8_t* I2C_Read_Si7021(void){
       //.addr = SI70_I2C_ADDR,
       .addr = (0x40)<<1,
       .flags = I2C_FLAG_READ,
+      .buf[0].data = temp_data,
+      .buf[0].len = 1,
 
 
   };
@@ -65,6 +67,8 @@ uint8_t* I2C_Read_Si7021(void){
 
 
 bool I2C_Write_Si7021(void){
+
+  int test=0;
 
   //uint8_t command = MEASURE_TEMP_CMD;
   uint8_t command = 0xF3;
@@ -95,17 +99,18 @@ bool I2C_Write_Si7021(void){
   switch(check_transfer){
 
     case i2cTransferInProgress:{
-      LOG_INFO("Here");
+      test++;
       break;
     }
 
     case i2cTransferDone:{
-      LOG_INFO("Here");
+      test++;
+      return true;
       break;
     }
 
     case i2cTransferNack:{
-      LOG_INFO("Here");
+      test++;
       break;
     }
 
@@ -115,21 +120,22 @@ bool I2C_Write_Si7021(void){
      }
 
     case i2cTransferArbLost:{
-        LOG_INFO("Here");
+      test++;
         break;
       }
 
     case i2cTransferUsageFault:{
-        LOG_INFO("Here");
+      test++;
         break;
       }
 
     case i2cTransferSwFault:{
-        LOG_INFO("Here");
+      test++;
         break;
       }
 
     default:{
+      test++;
       break;
     }
 
@@ -141,15 +147,18 @@ bool I2C_Write_Si7021(void){
 
 uint8_t read_temp_si7021(void){
 
+  uint8_t* temp_data;
+
+  uint8_t temp =0;
+
+  GPIO_DriveStrengthSet(gpioPortD, gpioDriveStrengthWeakAlternateStrong);
+
   GPIO_PinModeSet(gpioPortD, 15, gpioModePushPull, false);
 
   GPIO_PinOutSet(gpioPortD,15);
 
-  timerWaitUs(80000);
+  timerWaitUs(90000);
 
-  uint8_t* temp_data;
-
-  uint8_t temp =0;
 
   if(I2C_Write_Si7021() == true){
 
