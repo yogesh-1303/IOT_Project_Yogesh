@@ -12,7 +12,7 @@ typedef enum {
   evtNOEvent=0,
   evtComp1Event=1,
   evtUFEvent=2
-};
+}event;
 
 
 uint32_t my_events;

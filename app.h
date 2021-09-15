@@ -55,6 +55,8 @@
 #include "src/timers.h"
 #include "src/irq.h"
 
+#include "src/i2c.h"
+
 
 
 #define evtLETIMER0_COMP1 (1)

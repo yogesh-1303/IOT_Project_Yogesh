@@ -20,11 +20,11 @@
 
 // Macro definition for Clock Prescaler
 #define PRESCALER (4)
-#define ACTUAL_CLK_FREQ ((uint32_t) (CLOCK_FREQ) / (PRESCALER))
+#define ACTUAL_CLK_FREQ ((CLOCK_FREQ) / (PRESCALER))
 
 // Macro definition for Compare Register 1 Value
-//#define COMPARE1_VALUE ((LETIMER_PERIOD_MS*ACTUAL_CLK_FREQ)/1000)
-#define COMPARE1_VALUE (65535)
+#define COMPARE1_VALUE ((LETIMER_PERIOD_MS*ACTUAL_CLK_FREQ)/1000)
+//#define COMPARE1_VALUE (65535)
 
 // Macro definition for Compare Register 2 Value
 #define COMPARE2_VALUE (COMPARE1_VALUE-((LETIMER_ON_TIME_MS*ACTUAL_CLK_FREQ)/1000))
@@ -130,9 +130,11 @@ void Timer_InterruptEnable(){
 
 void timerWaitUs(uint32_t us_wait){
 
-   uint32_t sec_wait=us_wait/1000000;
+   /*uint32_t sec_wait=us_wait/1000000;
 
-   uint32_t total_ticks = (sec_wait*(ACTUAL_CLK_FREQ));
+   uint32_t total_ticks = (sec_wait*(ACTUAL_CLK_FREQ));*/
+
+  uint32_t total_ticks = ((us_wait*(ACTUAL_CLK_FREQ))/1000000);
 
 
   uint32_t now_count;

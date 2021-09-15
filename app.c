@@ -83,7 +83,7 @@ sl_power_manager_on_isr_exit_t app_sleep_on_isr_exit(void)
  *****************************************************************************/
 SL_WEAK void app_init(void)
 {
-  //int temp_freq;
+  uint8_t temp=0;
   // Put your application 1-time init code here
   // This is called once during start-up.
   // Don't call any Bluetooth API functions until after the boot event.
@@ -96,6 +96,9 @@ SL_WEAK void app_init(void)
 
   // Configures CMU by enabling and prescaling appropriate clocks
   Configure_CMU();
+
+  // Initialize I2C
+  I2C_init();
 
   // Initialize LETIMER by setting various bit field in LETIMER0_CTRL register
   Timer_init();
@@ -123,7 +126,10 @@ SL_WEAK void app_init(void)
   //temp_freq=CMU_ClockFreqGet(cmuClock_LETIMER0);
   //LOG_INFO("LETIMER0 CLOCK FREQUENCY :%d for mode EM%d",(uint32_t)temp_freq,LOWEST_ENERGY_MODE);
 
-    LOG_INFO("\rHELLO");
+
+  temp = read_temp_si7021();
+
+  LOG_INFO("HELLO");
 
 }
 
@@ -158,7 +164,7 @@ SL_WEAK void app_process_action(void)
   //         We will create/use a scheme that is far more energy efficient in
   //         later assignments.
 
-  /*
+
   uint32_t event;
 
   event=getNextEvent();
@@ -179,15 +185,15 @@ SL_WEAK void app_process_action(void)
 
     default: break;
 
-  }*/
+  }
 
-  gpioLed0SetOn();
+  /*gpioLed0SetOn();
 
   timerWaitUs(4000000);
 
   gpioLed0SetOff();
 
-  timerWaitUs(4000000);
+  timerWaitUs(4000000);*/
 
 
 
