@@ -13,7 +13,7 @@
 #include <assert.h>
 #include "src/log.h"
 #include "app.h"
-#include "log.h"
+//#include "log.h"
 #include "em_letimer.h"
 #include "efr32bg13p632f512gm48.h"
 

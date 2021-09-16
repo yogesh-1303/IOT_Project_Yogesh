@@ -42,8 +42,6 @@ void I2C_init(void){
 
 uint8_t* I2C_Read_Si7021(void){
 
-  //static uint8_t temp_data[1];
-  //static uint8_t temp_data[2];
 
   uint8_t *temp_data=(uint8_t*)malloc(sizeof(uint8_t)*2);
 
@@ -51,8 +49,7 @@ uint8_t* I2C_Read_Si7021(void){
 
   I2C_TransferSeq_TypeDef read = {
 
-      //.addr = SI70_I2C_ADDR,
-      .addr = (0x40)<<1,
+      .addr = SI70_I2C_ADDR<<1,
       .flags = I2C_FLAG_READ,
       .buf[0].data = temp_data,
       .buf[0].len = sizeof(temp_data),
@@ -60,11 +57,9 @@ uint8_t* I2C_Read_Si7021(void){
 
   };
 
-  while((check_transfer=I2CSPM_Transfer(I2C0,&read)) == i2cTransferNack);
+  check_transfer=I2CSPM_Transfer(I2C0,&read);
 
-  temp_data[0] = (read.buf[0].data[0]);
-
-  temp_data[1] = (read.buf[0].data[1]);
+  while(check_transfer == i2cTransferNack);
 
   return temp_data;
 
@@ -75,15 +70,13 @@ bool I2C_Write_Si7021(void){
 
   int test=0;
 
-  //uint8_t command = MEASURE_TEMP_CMD;
-  uint8_t command = 0xF3;
+  uint8_t command = MEASURE_TEMP_CMD;
 
   I2C_TransferReturn_TypeDef check_transfer;
 
   I2C_TransferSeq_TypeDef write ={
 
-      //.addr = SI70_I2C_ADDR,
-      .addr = (0x40)<<1,
+      .addr = SI70_I2C_ADDR<<1,
       .flags = I2C_FLAG_WRITE,
 
       .buf[0].data = &command,
@@ -93,17 +86,8 @@ bool I2C_Write_Si7021(void){
 
   check_transfer=I2CSPM_Transfer(I2C0,&write);
 
-
   timerWaitUs(10800);
 
-
-  //while((check_transfer=I2CSPM_Transfer(I2C0,&write)) == i2cTransferNack);
-
-  /*if (check_transfer == i2cTransferDone){
-      return true;
-  }
-
-  else return false;*/
 
   switch(check_transfer){
 
@@ -154,13 +138,13 @@ bool I2C_Write_Si7021(void){
 
 }
 
-uint8_t read_temp_si7021(void){
-
-  //uint8_t* temp_data;
+uint16_t read_temp_si7021(void){
 
   uint8_t *temp_d;
 
-  uint8_t temp =0;
+  uint16_t temp = 0;
+
+  uint16_t celsius = 0;
 
   GPIO_DriveStrengthSet(gpioPortD, gpioDriveStrengthWeakAlternateStrong);
 
@@ -177,14 +161,19 @@ uint8_t read_temp_si7021(void){
 
   }
 
-  temp=temp_d[0]+temp_d[1];
+  temp=(256*temp_d[0])+temp_d[1];
 
   GPIO_PinOutClear(gpioPortD,15);
 
- // GPIO_PinOutSet(gpioPortD,15);
 
+ // Convert Temperarure Code to degree Celsius
 
-  return (temp);
+  celsius = ((175.52*(temp))/65535)  - 46.85;
+
+  // Free allocated buffer
+  free(temp_d);
+
+  return (celsius);
 
 }
 

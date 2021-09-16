@@ -8,7 +8,7 @@
 #include "timers.h"
 
 // Include logging for this file
-#define INCLUDE_LOG_DEBUG 1
+//#define INCLUDE_LOG_DEBUG 1
 
 /*Macro definition to select appropriate clock frequency macro depending on energy mode*/
 
@@ -23,16 +23,14 @@
 #define ACTUAL_CLK_FREQ ((CLOCK_FREQ) / (PRESCALER))
 
 // Macro definition for Compare Register 1 Value
-#define COMPARE1_VALUE ((LETIMER_PERIOD_MS*ACTUAL_CLK_FREQ)/1000)
+#define COMPARE0_VALUE ((LETIMER_PERIOD_MS*ACTUAL_CLK_FREQ)/1000)
 //#define COMPARE1_VALUE (65535)
 
 // Macro definition for Compare Register 2 Value
-#define COMPARE2_VALUE (COMPARE1_VALUE-((LETIMER_ON_TIME_MS*ACTUAL_CLK_FREQ)/1000))
+#define COMPARE1_VALUE (COMPARE0_VALUE-((LETIMER_ON_TIME_MS*ACTUAL_CLK_FREQ)/1000))
 //#define COMPARE2_VALUE ((LETIMER_ON_TIME_MS*ACTUAL_CLK_FREQ)/1000)
 
-#define DEBUG1 1
-
-
+#define MICROSEC_PER_SEC (1000000)
 
 /* Function that initializes LETIMER by setting various bit field in LETIMER0_CTRL register
  * PARAMETERS : NONE
@@ -45,7 +43,7 @@ void Timer_init(){
   const LETIMER_Init_TypeDef LEINIT = {
     .enable   = false,                       //Don't start counting upon init
     .debugRun = true,                       //Freeze timer in debug
-    .comp0Top = false,                        //Load comp0 as top value
+    .comp0Top = true,                        //Load comp0 as top value
     .bufTop   = false,                       //Write comp0 only by software
     .out0Pol  = 0,                           //Low polarity of output1
     .out1Pol  = 0,                           //Low polarity of output2
@@ -70,10 +68,10 @@ void Timer_init(){
 void Timer_load(){
 
    // Load Value into compare register 0
-   LETIMER_CompareSet(LETIMER0,0,COMPARE1_VALUE);
+   LETIMER_CompareSet(LETIMER0,0,COMPARE0_VALUE);
 
    // Load Value into compare register 1
-   LETIMER_CompareSet(LETIMER0,1,COMPARE2_VALUE);
+   LETIMER_CompareSet(LETIMER0,1,COMPARE1_VALUE);
 
 }
 
@@ -130,18 +128,31 @@ void Timer_InterruptEnable(){
 
 void timerWaitUs(uint32_t us_wait){
 
-   /*uint32_t sec_wait=us_wait/1000000;
+  uint32_t compare0_value = (LETIMER_PERIOD_MS*ACTUAL_CLK_FREQ)/1000;
 
-   uint32_t total_ticks = (sec_wait*(ACTUAL_CLK_FREQ));*/
+  uint32_t total_ticks;
 
-  uint32_t total_ticks = ((us_wait*(ACTUAL_CLK_FREQ))/1000000);
+  // To avoid unsigned 32 bit overflow for too large delays
+  if(us_wait >= MICROSEC_PER_SEC ){
+
+      uint32_t sec_wait=us_wait/MICROSEC_PER_SEC;
+
+      total_ticks = (sec_wait*(ACTUAL_CLK_FREQ));
+
+  }
+
+  else {
+
+      total_ticks = ((us_wait*(ACTUAL_CLK_FREQ))/MICROSEC_PER_SEC);
+
+  }
 
 
   uint32_t now_count;
   uint32_t current_count;
 
-  // Range Check
-  if(total_ticks > 0xFFFF){
+  // Range Check for total ticks
+  if(total_ticks > (COMPARE0_VALUE)){
 
       //LOG
       exit(-1);
@@ -154,14 +165,14 @@ void timerWaitUs(uint32_t us_wait){
   // Roll over logic
   if(now_count < total_ticks){
 
-      //while((current_count=LETIMER_CounterGet(LETIMER0)) != 0);
-      //while((current_count=LETIMER_CounterGet(LETIMER0)) < now_count);
 
-      //while((LETIMER_CounterGet(LETIMER0)) < now_count){
+      //while((current_count=LETIMER_CounterGet(LETIMER0)) < now_count);
       while((current_count=LETIMER_CounterGet(LETIMER0)) !=0);
 
 
-      while((LETIMER_CounterGet(LETIMER0)) >= ((0XFFFF)-(total_ticks-now_count)));
+      //while((LETIMER_CounterGet(LETIMER0)) >= ((0XFFFF)-(total_ticks-now_count)));
+      //while((current_count=LETIMER_CounterGet(LETIMER0)) >= ((COMPARE0_VALUE)-(total_ticks-now_count)));
+      while((current_count=LETIMER_CounterGet(LETIMER0)) >= ((compare0_value)-(total_ticks-now_count)));
 
 
   }
@@ -169,7 +180,7 @@ void timerWaitUs(uint32_t us_wait){
   else {
 
       //while((current_count=LETIMER_CounterGet(LETIMER0)) >= (now_count-total_ticks));
-      while((LETIMER_CounterGet(LETIMER0)) >= (now_count-total_ticks));
+      while((current_count=LETIMER_CounterGet(LETIMER0)) >= (now_count-total_ticks));
 
   }
 

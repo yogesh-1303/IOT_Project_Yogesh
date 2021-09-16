@@ -29,6 +29,6 @@ uint8_t* I2C_Read_Si7021(void);
 
 bool I2C_Write_Si7021(void);
 
-uint8_t read_temp_si7021(void);
+uint16_t read_temp_si7021(void);
 
 #endif /* SRC_I2C_H_ */

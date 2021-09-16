@@ -41,7 +41,7 @@
 #include "app.h"
 
 // Include logging for this file
-#define INCLUDE_LOG_DEBUG 1
+#define INCLUDE_LOG_DEBUG (1)
 
 #include "src/log.h"
 
@@ -83,7 +83,8 @@ sl_power_manager_on_isr_exit_t app_sleep_on_isr_exit(void)
  *****************************************************************************/
 SL_WEAK void app_init(void)
 {
-  uint8_t temp=0;
+
+  uint16_t temp = 0;
   // Put your application 1-time init code here
   // This is called once during start-up.
   // Don't call any Bluetooth API functions until after the boot event.
@@ -129,26 +130,9 @@ SL_WEAK void app_init(void)
 
   temp = read_temp_si7021();
 
-  LOG_INFO("HELLO");
+  LOG_INFO("HELLO I am home");
 
 }
-
-
-/*****************************************************************************
- * delayApprox(), private to this file.
- * A value of 3500000 is ~ 1 second. After assignment 1 you can delete or
- * comment out this function. Wait loops are a bad idea in general.
- * We'll discuss how to do this a better way in the next assignment.
- *****************************************************************************/
-static void delayApprox(int delay)
-{
-  volatile int i;
-
-  for (i = 0; i < delay; ) {
-      i=i+1;
-  }
-
-} // delayApprox()
 
 
 
@@ -165,7 +149,7 @@ SL_WEAK void app_process_action(void)
   //         later assignments.
 
 
-  uint32_t event;
+ /* uint32_t event;
 
   event=getNextEvent();
 
@@ -185,17 +169,18 @@ SL_WEAK void app_process_action(void)
 
     default: break;
 
-  }
+  }*/
 
-  /*gpioLed0SetOn();
+  gpioLed0SetOn();
 
-  timerWaitUs(4000000);
+  timerWaitUs(1000000);
 
   gpioLed0SetOff();
 
-  timerWaitUs(4000000);*/
+  timerWaitUs(1000000);
 
-
+ // LOG_INFO("HELLO I am home");
+ // LOG_INFO("\nHELLO I am home");
 
 }
 
