@@ -14,9 +14,7 @@
 #include <assert.h>
 #include "em_gpio.h"
 #include "src/timers.h"
-#include "src/log.h"
 #include "app.h"
-#include "log.h"
 #include "em_i2c.h"
 #include <sl_i2cspm.h>
 #include "em_letimer.h"

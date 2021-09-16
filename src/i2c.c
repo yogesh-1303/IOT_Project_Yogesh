@@ -7,6 +7,11 @@
 
 #include "i2c.h"
 
+// Include logging for this file
+#define INCLUDE_LOG_DEBUG (1)
+
+#include "src/log.h"
+
 #define SI70_I2C_ADDR (0x40)
 
 #define MEASURE_TEMP_CMD (0xF3)
@@ -19,8 +24,8 @@ void I2C_init(void){
   I2CSPM_Init_TypeDef i2cspm = {
 
       .i2cClhr = i2cClockHLRStandard,
-      .i2cMaxFreq = 0,
-      .i2cRefFreq = I2C_FREQ_STANDARD_MAX,
+      .i2cMaxFreq = I2C_FREQ_STANDARD_MAX,
+      .i2cRefFreq = 0,
       .port = I2C0,
       .portLocationScl = 14u,
       .portLocationSda = 16u,
@@ -68,7 +73,6 @@ uint8_t* I2C_Read_Si7021(void){
 
 bool I2C_Write_Si7021(void){
 
-  int test=0;
 
   uint8_t command = MEASURE_TEMP_CMD;
 
@@ -86,49 +90,54 @@ bool I2C_Write_Si7021(void){
 
   check_transfer=I2CSPM_Transfer(I2C0,&write);
 
-  timerWaitUs(10800);
+  //timerWaitUs(10800);
 
+  LOG_INFO("\rWriting to I2C");
 
   switch(check_transfer){
 
     case i2cTransferInProgress:{
-      test++;
+
       break;
     }
 
     case i2cTransferDone:{
-      test++;
+
       return true;
       break;
+
     }
 
     case i2cTransferNack:{
-      test++;
+
+      LOG_ERROR("\rNACK Received");
       break;
     }
 
     case i2cTransferBusErr:{
-       LOG_INFO("Here");
+      LOG_ERROR("\rBus Error");
        break;
      }
 
     case i2cTransferArbLost:{
-      test++;
+
+      LOG_ERROR("\rArbitration lost");
         break;
       }
 
     case i2cTransferUsageFault:{
-      test++;
+
+      LOG_ERROR("\rUsage Fault");
         break;
       }
 
     case i2cTransferSwFault:{
-      test++;
-        break;
+
+      LOG_ERROR("\rSw Fault");
+      break;
       }
 
     default:{
-      test++;
       break;
     }
 
@@ -157,23 +166,29 @@ uint16_t read_temp_si7021(void){
 
   if(I2C_Write_Si7021() == true){
 
+      timerWaitUs(10800);
+
       temp_d = I2C_Read_Si7021();
+
+      temp=(256*temp_d[0])+temp_d[1];
+
+      GPIO_PinOutClear(gpioPortD,15);
+
+
+     // Convert Temperarure Code to degree Celsius
+
+      celsius = ((175.52*(temp))/65535)  - 46.85;
+
+      // Free allocated buffer
+      free(temp_d);
+
+      LOG_INFO("\r Current Temperature : %d",(int32_t)celsius);
+
+      return (celsius);
 
   }
 
-  temp=(256*temp_d[0])+temp_d[1];
-
-  GPIO_PinOutClear(gpioPortD,15);
-
-
- // Convert Temperarure Code to degree Celsius
-
-  celsius = ((175.52*(temp))/65535)  - 46.85;
-
-  // Free allocated buffer
-  free(temp_d);
-
-  return (celsius);
+  return 0;
 
 }
 

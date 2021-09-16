@@ -11,7 +11,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include "scheduler.h"
-#include "log.h"
 #include "src/gpio.h"
 #include "em_letimer.h"
 #include "efr32bg13p632f512gm48.h"

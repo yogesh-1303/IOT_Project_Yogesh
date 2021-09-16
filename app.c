@@ -84,7 +84,7 @@ sl_power_manager_on_isr_exit_t app_sleep_on_isr_exit(void)
 SL_WEAK void app_init(void)
 {
 
-  uint16_t temp = 0;
+  //uint16_t temperature = 0;
   // Put your application 1-time init code here
   // This is called once during start-up.
   // Don't call any Bluetooth API functions until after the boot event.
@@ -114,7 +114,7 @@ SL_WEAK void app_init(void)
   NVIC_EnableIRQ(LETIMER0_IRQn);
 
   // Enable required interrupts of LETIMER0
-  //Timer_InterruptEnable();
+  Timer_InterruptEnable();
 
   //Start timer
   Timer_Onoff(true);
@@ -128,9 +128,9 @@ SL_WEAK void app_init(void)
   //LOG_INFO("LETIMER0 CLOCK FREQUENCY :%d for mode EM%d",(uint32_t)temp_freq,LOWEST_ENERGY_MODE);
 
 
-  temp = read_temp_si7021();
+  //temperature = read_temp_si7021();
 
-  LOG_INFO("HELLO I am home");
+  //LOG_INFO("\r Current Temperature : %d",(int32_t)temperature);
 
 }
 
@@ -149,7 +149,7 @@ SL_WEAK void app_process_action(void)
   //         later assignments.
 
 
- /* uint32_t event;
+  uint32_t event;
 
   event=getNextEvent();
 
@@ -157,6 +157,7 @@ SL_WEAK void app_process_action(void)
 
     case evtLETIMER0_UF:{
 
+        read_temp_si7021();
         gpioLed0SetOn();
         break;
     }
@@ -169,18 +170,16 @@ SL_WEAK void app_process_action(void)
 
     default: break;
 
-  }*/
+  }
 
-  gpioLed0SetOn();
+  /*gpioLed0SetOn();
 
   timerWaitUs(1000000);
 
   gpioLed0SetOff();
 
-  timerWaitUs(1000000);
+  timerWaitUs(1000000);*/
 
- // LOG_INFO("HELLO I am home");
- // LOG_INFO("\nHELLO I am home");
 
 }
 
