@@ -123,14 +123,6 @@ SL_WEAK void app_init(void)
     sl_power_manager_add_em_requirement(LOWEST_ENERGY_MODE);
 #endif
 
-  // Log info to check if correct frequency is set
-  //temp_freq=CMU_ClockFreqGet(cmuClock_LETIMER0);
-  //LOG_INFO("LETIMER0 CLOCK FREQUENCY :%d for mode EM%d",(uint32_t)temp_freq,LOWEST_ENERGY_MODE);
-
-
-  //temperature = read_temp_si7021();
-
-  //LOG_INFO("\r Current Temperature : %d",(int32_t)temperature);
 
 }
 

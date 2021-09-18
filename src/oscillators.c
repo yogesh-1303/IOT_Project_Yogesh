@@ -58,9 +58,6 @@ void Configure_CMU(void){
   // Prescaling of LETIMER clock
   CMU_ClockDivSet(cmuClock_LETIMER0,CLK_PRESCALER);
 
-  // Prescaling of I2C0 clock
-  //CMU_ClockDivSet(cmuClock_I2C0,4);
-
   // Enabling the LETIMER0 peripheral clock
   CMU_ClockEnable(cmuClock_LETIMER0,true);
 
