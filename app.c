@@ -158,13 +158,13 @@ SL_WEAK void app_process_action(void)
     case evtLETIMER0_UF:{
 
         read_temp_si7021();
-        gpioLed0SetOn();
+        //gpioLed0SetOn();
         break;
     }
 
     case evtLETIMER0_COMP1:{
 
-        gpioLed0SetOff();
+        //gpioLed0SetOff();
         break;
      }
 

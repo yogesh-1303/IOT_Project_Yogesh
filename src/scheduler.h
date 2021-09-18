@@ -1,8 +1,7 @@
 /*
  * scheduler.h
+ * Attributes - Prof.David Sluiter IOT and Embedded Firmware Lecture 5 & Lecture 6
  *
- *  Created on: 14-Sep-2021
- *      Author: Shrikant
  */
 
 #ifndef SRC_SCHEDULER_H_

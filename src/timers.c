@@ -24,7 +24,6 @@
 
 // Macro definition for Compare Register 1 Value
 #define COMPARE0_VALUE ((LETIMER_PERIOD_MS*ACTUAL_CLK_FREQ)/1000)
-//#define COMPARE1_VALUE (65535)
 
 // Macro definition for Compare Register 2 Value
 #define COMPARE1_VALUE (COMPARE0_VALUE-((LETIMER_ON_TIME_MS*ACTUAL_CLK_FREQ)/1000))
@@ -154,9 +153,7 @@ void timerWaitUs(uint32_t us_wait){
   // Range Check for total ticks
   if(total_ticks > (COMPARE0_VALUE)){
 
-      //LOG
-      exit(-1);
-
+      //LOG_ERRO("Out of Range Value\r");
   }
 
   now_count=LETIMER_CounterGet(LETIMER0);
@@ -166,12 +163,12 @@ void timerWaitUs(uint32_t us_wait){
   if(now_count < total_ticks){
 
 
-      //while((current_count=LETIMER_CounterGet(LETIMER0)) < now_count);
-      while((current_count=LETIMER_CounterGet(LETIMER0)) !=0);
+      // Let timer count till underflow
+      // while((current_count=LETIMER_CounterGet(LETIMER0)) < now_count);
+      while((current_count=LETIMER_CounterGet(LETIMER0)) != 0);
 
 
-      //while((LETIMER_CounterGet(LETIMER0)) >= ((0XFFFF)-(total_ticks-now_count)));
-      //while((current_count=LETIMER_CounterGet(LETIMER0)) >= ((COMPARE0_VALUE)-(total_ticks-now_count)));
+      // Continue counting for remainin ticks after underflow
       while((current_count=LETIMER_CounterGet(LETIMER0)) >= ((compare0_value)-(total_ticks-now_count)));
 
 
@@ -179,7 +176,7 @@ void timerWaitUs(uint32_t us_wait){
 
   else {
 
-      //while((current_count=LETIMER_CounterGet(LETIMER0)) >= (now_count-total_ticks));
+      // Continue counting till the calculated ticks
       while((current_count=LETIMER_CounterGet(LETIMER0)) >= (now_count-total_ticks));
 
   }

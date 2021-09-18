@@ -1,20 +1,21 @@
 /*
  * scheduler.c
+ * Attributes - Prof.David Sluiter IOT and Embedded Firmware Lecture 5 & Lecture 6
  *
- *  Created on: 14-Sep-2021
- *      Author: Shrikant
  */
 
 #include "scheduler.h"
 
+// enumeration for various events on interrupt
 typedef enum {
 
   evtNOEvent=0,
   evtComp1Event=1,
-  evtUFEvent=2
+  evtUFEvent=2,
+  totalevents
 }event;
 
-
+// global variable for checking triggered event
 uint32_t my_events;
 
 void schedulerSetCOMP1Event(){
