@@ -70,7 +70,7 @@ void Timer_load(){
    LETIMER_CompareSet(LETIMER0,0,COMPARE0_VALUE);
 
    // Load Value into compare register 1
-   LETIMER_CompareSet(LETIMER0,1,COMPARE1_VALUE);
+   /*LETIMER_CompareSet(LETIMER0,1,COMPARE1_VALUE);*/
 
 }
 
@@ -108,7 +108,7 @@ void Timer_Printcount(){
 
   //Log Timer Count for debug purpose
   //temp=LETIMER_CounterGet(LETIMER0);
-  //LOG_INFO("\nCurrent Timer Count is %d",(uint32_t)temp);
+  //LOG_INFO("\nCurrent Timer Count is %d",(int32_t)temp);
 
 
 }
@@ -121,7 +121,8 @@ void Timer_Printcount(){
 void Timer_InterruptEnable(){
 
   // Enable Comp0 Comp1 and Underflow Interrupts
-  LETIMER_IntEnable(LETIMER0,LETIMER_IEN_COMP0 |LETIMER_IEN_COMP1 |LETIMER_IEN_UF);
+  /*LETIMER_IntEnable(LETIMER0,LETIMER_IEN_COMP0 |LETIMER_IEN_COMP1 |LETIMER_IEN_UF);*/
+  LETIMER_IntEnable(LETIMER0, LETIMER_IEN_UF);
 
 }
 
@@ -180,6 +181,67 @@ void timerWaitUs(uint32_t us_wait){
       while((current_count=LETIMER_CounterGet(LETIMER0)) >= (now_count-total_ticks));
 
   }
+
+}
+
+void timerWaitUs_irq(uint32_t us_wait){
+
+  uint32_t compare0_value = (LETIMER_PERIOD_MS*ACTUAL_CLK_FREQ)/1000;
+
+   uint32_t total_ticks;
+
+   // To avoid unsigned 32 bit overflow for too large delays
+   if(us_wait >= MICROSEC_PER_SEC ){
+
+       uint32_t sec_wait=us_wait/MICROSEC_PER_SEC;
+
+       total_ticks = (sec_wait*(ACTUAL_CLK_FREQ));
+
+   }
+
+   else {
+
+       total_ticks = ((us_wait*(ACTUAL_CLK_FREQ))/MICROSEC_PER_SEC);
+
+   }
+
+
+   uint32_t now_count;
+   uint32_t set_count;
+
+   now_count=LETIMER_CounterGet(LETIMER0);
+
+   if (total_ticks > now_count){
+
+       set_count = compare0_value - (total_ticks-now_count);
+
+       LETIMER_CompareSet(LETIMER0,1,set_count);
+
+       //Enable comp1 Interrupt
+       LETIMER_IntEnable(LETIMER0, LETIMER_IEN_COMP1);
+
+       flag_wait=1;
+
+   }
+
+   else {
+
+       set_count =  now_count - total_ticks;
+
+       LETIMER_CompareSet(LETIMER0,1,set_count);
+
+       //Enable comp1 Interrupt
+       LETIMER_IntEnable(LETIMER0, LETIMER_IEN_COMP1);
+
+       schedulerSetNOEvent();
+
+       flag_wait=1;
+
+
+   }
+
+   /*Sleep to EM3*/
+
 
 }
 

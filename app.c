@@ -45,6 +45,8 @@
 
 #include "src/log.h"
 
+uint8_t flag_wait=0;
+
 
 
 
@@ -142,25 +144,118 @@ SL_WEAK void app_process_action(void)
 
 
   uint32_t event;
+  uint32_t previous_event;
 
-  event=getNextEvent();
+  if (!flag_wait) event=getNextEvent();
+
+  else {
+
+      schedulerSetNOEvent();
+      event=getNextEvent();
+
+  }
+
 
   switch(event){
 
-    case evtLETIMER0_UF:{
+    case evtUFEvent:{
 
-        read_temp_si7021();
-        //gpioLed0SetOn();
-        break;
+        GPIO_PinModeSet(gpioPortD, 15, gpioModePushPull, false);
+
+        // Enable Si7021 by setting its enable signal high
+        Enable_si7021(true);
+
+        // Wait for Power up time
+        timerWaitUs_irq(80000);
+
+        schedulerSetI2CwriteEvent();
+
+      break;
     }
 
-    case evtLETIMER0_COMP1:{
+    case evtComp1Event:{
 
-        //gpioLed0SetOff();
-        break;
+        flag_wait=0;
+
+      break;
      }
 
-    default: break;
+    case evtI2CdoneEvent:{
+
+      if (previous_event == evtI2CwriteEvent){
+
+          schedulerSetWaitTempReadyEvent();
+
+      }
+
+      else if  (previous_event == evtI2CreadEvent){
+
+          schedulerSetI2CpowerdownEvent();
+
+      }
+
+
+      break;
+
+    }
+
+
+   case evtI2CprocesstempEvent:{
+
+    process_temp_si7021();
+
+    break;
+
+   }
+
+    case evtI2CwriteEvent:{
+
+      I2C_Write_Si7021();
+
+      previous_event=evtI2CwriteEvent;
+
+      break;
+
+    }
+
+    case evtSetWaitTempReadyEvent:{
+
+      timerWaitUs_irq(10800);
+
+      schedulerSetI2CreadEvent();
+
+      break;
+
+    }
+
+
+
+    case evtI2CreadEvent:{
+
+      I2C_Read_Si7021();
+
+      previous_event=evtI2CreadEvent;
+
+
+      break;
+
+    }
+
+    case evtI2CpowerdownEvent:{
+
+      // Disable si7021
+      Enable_si7021(false);
+
+      schedulerSetI2CprocesstempEvent();
+
+      break;
+
+    }
+
+
+    default:break;
+
+
 
   }
 

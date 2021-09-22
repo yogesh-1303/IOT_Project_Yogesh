@@ -31,14 +31,14 @@ void I2C_init(void);
  * PARAMTERS - NONE
  * RETURNS   - read buffer
  */
-uint8_t* I2C_Read_Si7021(void);
+void I2C_Read_Si7021(void);
 
 /*
  * Function to write command to Si7021
  * PARAMTERS - NONE
  * RETURNS   - True for Success , False for failure
  */
-bool I2C_Write_Si7021(void);
+void I2C_Write_Si7021(void);
 
 /*
  * Function to enable/disable Si7021
@@ -52,6 +52,6 @@ void Enable_si7021(bool state);
  * PARAMTERS - NONE
  * RETURNS   - Converted temperature value
  */
-uint16_t read_temp_si7021(void);
+void process_temp_si7021(void);
 
 #endif /* SRC_I2C_H_ */

@@ -6,17 +6,63 @@
 
 #include "scheduler.h"
 
-// enumeration for various events on interrupt
-typedef enum {
 
-  evtNOEvent=0,
-  evtComp1Event=1,
-  evtUFEvent=2,
-  totalevents
-}event;
 
 // global variable for checking triggered event
 uint32_t my_events;
+
+void schedulerSetI2CdoneEvent(){
+
+   CORE_DECLARE_IRQ_STATE;
+
+   CORE_ENTER_CRITICAL();
+
+   my_events=evtI2CdoneEvent;
+
+   CORE_EXIT_CRITICAL();
+
+
+}
+
+void schedulerSetI2CwriteEvent(){
+
+   CORE_DECLARE_IRQ_STATE;
+
+   CORE_ENTER_CRITICAL();
+
+   my_events=evtI2CwriteEvent;
+
+   CORE_EXIT_CRITICAL();
+
+
+}
+
+void schedulerSetI2CreadEvent(){
+
+  CORE_DECLARE_IRQ_STATE;
+
+  CORE_ENTER_CRITICAL();
+
+  my_events=evtI2CreadEvent;
+
+  CORE_EXIT_CRITICAL();
+
+
+
+}
+
+void schedulerSetWaitTempReadyEvent(){
+
+  CORE_DECLARE_IRQ_STATE;
+
+  CORE_ENTER_CRITICAL();
+
+  my_events=evtSetWaitTempReadyEvent;
+
+  CORE_EXIT_CRITICAL();
+
+}
+
 
 void schedulerSetCOMP1Event(){
 
@@ -30,6 +76,33 @@ void schedulerSetCOMP1Event(){
 
 }
 
+void schedulerSetI2CprocesstempEvent(){
+
+  CORE_DECLARE_IRQ_STATE;
+
+  CORE_ENTER_CRITICAL();
+
+  my_events=evtI2CprocesstempEvent;
+
+  CORE_EXIT_CRITICAL();
+
+}
+
+void schedulerSetI2CpowerdownEvent(){
+
+
+  CORE_DECLARE_IRQ_STATE;
+
+  CORE_ENTER_CRITICAL();
+
+  my_events=evtI2CpowerdownEvent;
+
+  CORE_EXIT_CRITICAL();
+
+
+
+}
+
 void schedulerSetUFEvent(){
 
   CORE_DECLARE_IRQ_STATE;
@@ -37,6 +110,18 @@ void schedulerSetUFEvent(){
   CORE_ENTER_CRITICAL();
 
   my_events=evtUFEvent;
+
+  CORE_EXIT_CRITICAL();
+
+}
+
+void schedulerSetNOEvent(){
+
+  CORE_DECLARE_IRQ_STATE;
+
+  CORE_ENTER_CRITICAL();
+
+  my_events=evtNOEvent;
 
   CORE_EXIT_CRITICAL();
 
@@ -58,6 +143,13 @@ uint32_t getNextEvent(){
     case evtUFEvent:{
 
       evt=2;
+      break;
+
+    }
+
+    case evtI2CdoneEvent:{
+
+      evt=3;
       break;
 
     }

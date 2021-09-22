@@ -24,5 +24,8 @@
 void LETIMER0_IRQHandler(void);
 
 
+uint32_t letimerMilliseconds();
+
+
 
 #endif /* SRC_IRQ_H_ */

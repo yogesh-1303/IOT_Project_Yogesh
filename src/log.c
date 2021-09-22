@@ -44,8 +44,8 @@ uint32_t loggerGetTimestamp()
        //           and not return 0. This will be the function to call for your graded
        //           assignments. Put this function in your irq.c/.h files.
        
-       //return letimerMilliseconds();
-	   return (0);
+     return letimerMilliseconds();
+	   //return (0);
 	   
     #endif
 
