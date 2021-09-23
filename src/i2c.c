@@ -129,7 +129,7 @@ void I2C_Write_Si7021(void){
 
   transferSequence.addr = SI70_I2C_ADDR<<1;
   transferSequence.flags = I2C_FLAG_WRITE;
-  transferSequence.buf[0].data = cmd_data;
+  transferSequence.buf[0].data = &cmd_data;
   transferSequence.buf[0].len = sizeof(cmd_data);
 
   NVIC_EnableIRQ(I2C0_IRQn);
@@ -204,14 +204,10 @@ void Enable_si7021(bool state){
 
 void process_temp_si7021(void){
 
-  // Temporary pointer to point to buffer and read from
-  uint8_t *temp_d;
 
   uint16_t temp = 0;
 
   uint16_t celsius = 0;
-
-
 
       // Combine 8 bit words by left shiffting MSB by 8
       temp=(256*temp_data[0])+temp_data[1];

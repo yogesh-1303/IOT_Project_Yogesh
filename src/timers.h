@@ -58,4 +58,7 @@ void Timer_Printcount();
  */
 void Timer_InterruptEnable();
 
+
+void timerWaitUs_irq(uint32_t us_wait);
+
 #endif /* SRC_TIMERS_H_ */

@@ -70,7 +70,7 @@ void Timer_load(){
    LETIMER_CompareSet(LETIMER0,0,COMPARE0_VALUE);
 
    // Load Value into compare register 1
-   /*LETIMER_CompareSet(LETIMER0,1,COMPARE1_VALUE);*/
+   //LETIMER_CompareSet(LETIMER0,1,0);
 
 }
 
@@ -121,8 +121,7 @@ void Timer_Printcount(){
 void Timer_InterruptEnable(){
 
   // Enable Comp0 Comp1 and Underflow Interrupts
-  /*LETIMER_IntEnable(LETIMER0,LETIMER_IEN_COMP0 |LETIMER_IEN_COMP1 |LETIMER_IEN_UF);*/
-  LETIMER_IntEnable(LETIMER0, LETIMER_IEN_UF);
+  LETIMER_IntEnable(LETIMER0,LETIMER_IEN_UF);
 
 }
 
@@ -215,27 +214,31 @@ void timerWaitUs_irq(uint32_t us_wait){
 
        set_count = compare0_value - (total_ticks-now_count);
 
+       LETIMER_IntClear(LETIMER0,LETIMER_IF_COMP1);
+
        LETIMER_CompareSet(LETIMER0,1,set_count);
+
+       flag_wait=1;
 
        //Enable comp1 Interrupt
        LETIMER_IntEnable(LETIMER0, LETIMER_IEN_COMP1);
 
-       flag_wait=1;
+
 
    }
 
    else {
 
        set_count =  now_count - total_ticks;
+       LETIMER_IntClear(LETIMER0,LETIMER_IF_COMP1);
 
        LETIMER_CompareSet(LETIMER0,1,set_count);
+
+       flag_wait=1;
 
        //Enable comp1 Interrupt
        LETIMER_IntEnable(LETIMER0, LETIMER_IEN_COMP1);
 
-       schedulerSetNOEvent();
-
-       flag_wait=1;
 
 
    }

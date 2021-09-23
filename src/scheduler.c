@@ -154,6 +154,41 @@ uint32_t getNextEvent(){
 
     }
 
+    case evtI2CwriteEvent:{
+
+      evt=4;
+      break;
+
+    }
+
+    case evtSetWaitTempReadyEvent:{
+
+      evt=5;
+      break;
+
+    }
+
+    case evtI2CreadEvent:{
+
+      evt=6;
+      break;
+
+    }
+
+    case evtI2CprocesstempEvent:{
+
+      evt=7;
+      break;
+
+    }
+
+    case evtI2CpowerdownEvent:{
+
+      evt=8;
+      break;
+
+    }
+
     default: break;
 
   }

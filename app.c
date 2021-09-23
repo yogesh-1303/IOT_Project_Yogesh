@@ -118,6 +118,8 @@ SL_WEAK void app_init(void)
   // Enable required interrupts of LETIMER0
   Timer_InterruptEnable();
 
+  LOG_INFO("Check 1111\r");
+
   //Start timer
   Timer_Onoff(true);
 
@@ -160,6 +162,8 @@ SL_WEAK void app_process_action(void)
 
     case evtUFEvent:{
 
+        LOG_INFO("POWER ON SENSOR @ %d\r",loggerGetTimestamp());
+
         GPIO_PinModeSet(gpioPortD, 15, gpioModePushPull, false);
 
         // Enable Si7021 by setting its enable signal high
@@ -175,6 +179,8 @@ SL_WEAK void app_process_action(void)
 
     case evtComp1Event:{
 
+      LETIMER_IntDisable(LETIMER0, LETIMER_IEN_COMP1);
+
         flag_wait=0;
 
       break;
@@ -183,6 +189,8 @@ SL_WEAK void app_process_action(void)
     case evtI2CdoneEvent:{
 
       if (previous_event == evtI2CwriteEvent){
+
+          //sl_power_manager_remove_em_requirement(EM1);
 
           schedulerSetWaitTempReadyEvent();
 
@@ -214,6 +222,8 @@ SL_WEAK void app_process_action(void)
 
       previous_event=evtI2CwriteEvent;
 
+      //sl_power_manager_add_em_requirement(EM1);
+
       break;
 
     }
@@ -223,6 +233,8 @@ SL_WEAK void app_process_action(void)
       timerWaitUs_irq(10800);
 
       schedulerSetI2CreadEvent();
+
+      //sl_power_manager_add_em_requirement(EM1);
 
       break;
 
@@ -247,6 +259,8 @@ SL_WEAK void app_process_action(void)
       Enable_si7021(false);
 
       schedulerSetI2CprocesstempEvent();
+
+      //sl_power_manager_remove_em_requirement(EM1);
 
       break;
 

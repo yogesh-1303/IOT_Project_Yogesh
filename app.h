@@ -57,7 +57,7 @@
 
 #include "src/i2c.h"
 
-extern uint8_t flag_wait=0;
+extern uint8_t flag_wait;
 
 // See: https://docs.silabs.com/gecko-platform/latest/service/power_manager/overview
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
@@ -68,6 +68,11 @@ extern uint8_t flag_wait=0;
 //#define LOWEST_ENERGY_MODE (1)
 //#define LOWEST_ENERGY_MODE (2)
 #define LOWEST_ENERGY_MODE (3)
+
+#define EM0 (0)
+#define EM1 (1)
+#define EM2 (2)
+#define EM3 (3)
 
 // Macro Definition for LED ON time period
 #define LETIMER_ON_TIME_MS (175)

@@ -28,6 +28,8 @@ uint32_t rollover_count=0;
  */
 void LETIMER0_IRQHandler(void){
 
+
+
   // Check if COMP1 Interrupt flag is set
   if (LETIMER0->IF & LETIMER_IF_COMP1){
 
@@ -35,7 +37,7 @@ void LETIMER0_IRQHandler(void){
       schedulerSetCOMP1Event();
 
       /*Disable COMP1 Interrupt*/
-      LETIMER_IntDisable(LETIMER0, LETIMER_IF_COMP1);
+      LETIMER_IntDisable(LETIMER0, LETIMER_IEN_COMP1);
 
   }
 
@@ -52,7 +54,9 @@ void LETIMER0_IRQHandler(void){
   }
 
   // Clear Interrupt Sorces
-  LETIMER_IntClear(LETIMER0, LETIMER_IF_COMP0 |LETIMER_IF_COMP1 |LETIMER_IF_UF);
+  LETIMER_IntClear(LETIMER0,LETIMER_IF_COMP0|LETIMER_IF_COMP1 |LETIMER_IF_UF);
+
+
 
 
 }
