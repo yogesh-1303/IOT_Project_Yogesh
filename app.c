@@ -128,6 +128,15 @@ SL_WEAK void app_init(void)
 
 }
 
+typedef enum uint32_t{
+  IDLE_State,
+  POWERON_State,
+  I2Cwrite_State,
+  I2Cread_State,
+  PROCESSTEMP_State,
+  POWERDOWN_State,
+
+}state_t;
 
 
 
@@ -142,28 +151,25 @@ SL_WEAK void app_process_action(void)
   //         We will create/use a scheme that is far more energy efficient in
   //         later assignments.
 
-
   uint32_t event;
-  uint32_t previous_event;
+  state_t current_state ;
+  static state_t next_state = IDLE_State;
 
+  state_t previous_state;
 
-  if (!flag_wait) event=getNextEvent();
+  current_state = next_state;
 
-  else {
+  event=getNextEvent();
 
-      schedulerSetNOEvent();
-      event=getNextEvent();
+  switch(current_state){
 
-  }
+    case IDLE_State:{
+     next_state = IDLE_State;
 
+     if (event == evtUFEvent){
 
-  switch(event){
-
-    case evtUFEvent:{
-
-        LOG_INFO("POWER ON SENSOR @ %d\r",loggerGetTimestamp());
-
-        GPIO_PinModeSet(gpioPortD, 15, gpioModePushPull, false);
+        //LOG_INFO("POWER ON SENSOR @ %d\r",loggerGetTimestamp());
+         LOG_INFO("POWER ON SENSOR @ ");
 
         // Enable Si7021 by setting its enable signal high
         Enable_si7021(true);
@@ -171,106 +177,93 @@ SL_WEAK void app_process_action(void)
         // Wait for Power up time
         timerWaitUs_irq(80000);
 
-        schedulerSetI2CwriteEvent();
+        next_state = POWERON_State;
 
-      break;
-    }
-
-    case evtComp1Event:{
-
-      LETIMER_IntDisable(LETIMER0, LETIMER_IEN_COMP1);
-
-        flag_wait=0;
-
-      break;
      }
+     break;
+    }
 
-    case evtI2CdoneEvent:{
+    case POWERON_State:{
 
-      if (previous_event == evtI2CwriteEvent){
+     next_state = POWERON_State;
 
-          //sl_power_manager_remove_em_requirement(EM1);
+     if (event == evtComp1Event){
 
-          schedulerSetWaitTempReadyEvent();
+         //if (previous_state == POWERON_State) next_state = POWERON_State;
 
+         //else if (previous_state == POWERON_State) next_state = POWERON_State;
+         I2C_Write_Si7021();
+         next_state = I2Cwrite_State;
+         sl_power_manager_add_em_requirement(EM1);
+
+     }
+     break;
+    }
+
+    case I2Cwrite_State:{
+
+     next_state = I2Cwrite_State;
+
+     if (event == evtI2CdoneEvent){
+
+         sl_power_manager_remove_em_requirement(EM1);
+         timerWaitUs_irq(10800);
+         next_state = I2Cread_State;
+
+     }
+     break;
+    }
+
+    case I2Cread_State:{
+
+       next_state = I2Cread_State;
+
+       if (event == evtComp1Event){
+
+           I2C_Read_Si7021();
+
+           next_state = PROCESSTEMP_State;
+
+           sl_power_manager_add_em_requirement(EM1);
+
+
+       }
+       break;
       }
 
-      else if  (previous_event == evtI2CreadEvent){
+    case PROCESSTEMP_State:{
 
-          schedulerSetI2CpowerdownEvent();
+      next_state = PROCESSTEMP_State;
 
+      if (event == evtI2CdoneEvent){
+
+       sl_power_manager_remove_em_requirement(EM1);
+
+       process_temp_si7021();
+
+       next_state = POWERDOWN_State;
+      }
+
+       break;
       }
 
 
-      break;
+    case POWERDOWN_State:{
 
-    }
+       Enable_si7021(false);
 
+       next_state = IDLE_State;
 
-   case evtI2CprocesstempEvent:{
+       break;
+      }
 
-    process_temp_si7021();
-
-    break;
-
-   }
-
-    case evtI2CwriteEvent:{
-
-      I2C_Write_Si7021();
-
-      previous_event=evtI2CwriteEvent;
-
-      //sl_power_manager_add_em_requirement(EM1);
-
-      break;
-
-    }
-
-    case evtSetWaitTempReadyEvent:{
-
-      timerWaitUs_irq(10800);
-
-      schedulerSetI2CreadEvent();
-
-      //sl_power_manager_add_em_requirement(EM1);
-
-      break;
-
-    }
-
-
-
-    case evtI2CreadEvent:{
-
-      I2C_Read_Si7021();
-
-      previous_event=evtI2CreadEvent;
-
-
-      break;
-
-    }
-
-    case evtI2CpowerdownEvent:{
-
-      // Disable si7021
-      Enable_si7021(false);
-
-      schedulerSetI2CprocesstempEvent();
-
-      //sl_power_manager_remove_em_requirement(EM1);
-
-      break;
-
-    }
-
-
-    default:break;
-
+    default: break;
 
 
   }
+
+
+
 
   /*gpioLed0SetOn();
 

@@ -33,6 +33,9 @@ void gpioInit()
 	GPIO_DriveStrengthSet(LED1_port, gpioDriveStrengthWeakAlternateWeak);
 	GPIO_PinModeSet(LED1_port, LED1_pin, gpioModePushPull, false);
 
+ // Enable Pin of Si7021 Sensor
+  GPIO_PinModeSet(gpioPortD, 15, gpioModePushPull, false);
+
 
 
 } // gpioInit()
