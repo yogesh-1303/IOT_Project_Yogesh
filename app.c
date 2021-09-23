@@ -118,8 +118,6 @@ SL_WEAK void app_init(void)
   // Enable required interrupts of LETIMER0
   Timer_InterruptEnable();
 
-  LOG_INFO("Check 1111\r");
-
   //Start timer
   Timer_Onoff(true);
 
@@ -147,6 +145,7 @@ SL_WEAK void app_process_action(void)
 
   uint32_t event;
   uint32_t previous_event;
+
 
   if (!flag_wait) event=getNextEvent();
 

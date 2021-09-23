@@ -28,10 +28,12 @@ uint32_t rollover_count=0;
  */
 void LETIMER0_IRQHandler(void){
 
+  uint32_t flags = LETIMER_IntGetEnabled(LETIMER0);
 
+  LETIMER_IntClear(LETIMER0,flags);
 
   // Check if COMP1 Interrupt flag is set
-  if (LETIMER0->IF & LETIMER_IF_COMP1){
+  if (flags == LETIMER_IEN_COMP1){
 
       // Set the appropriate event in scheduler
       schedulerSetCOMP1Event();
@@ -42,7 +44,7 @@ void LETIMER0_IRQHandler(void){
   }
 
   // Check if Underflow Interrupt flag is set
-  else if (LETIMER0->IF & LETIMER_IF_UF){
+ if (flags == LETIMER_IEN_UF){
 
       // Set the appropriate event in scheduler
       schedulerSetUFEvent();
@@ -54,7 +56,7 @@ void LETIMER0_IRQHandler(void){
   }
 
   // Clear Interrupt Sorces
-  LETIMER_IntClear(LETIMER0,LETIMER_IF_COMP0|LETIMER_IF_COMP1 |LETIMER_IF_UF);
+  //LETIMER_IntClear(LETIMER0,LETIMER_IF_COMP0|LETIMER_IF_COMP1 |LETIMER_IF_UF);
 
 
 

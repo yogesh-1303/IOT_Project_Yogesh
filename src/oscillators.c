@@ -8,14 +8,16 @@
 #include "oscillators.h"
 
 // Macro definition for clock prescaling value
-#define CLK_PRESCALER (4)
+
 
 #if(LOWEST_ENERGY_MODE==3)
 #define OSC_TYPE (cmuOsc_ULFRCO)
 #define OSC_SEL (cmuSelect_ULFRCO)
+#define CLK_PRESCALER (1)
 #else
 #define OSC_TYPE (cmuOsc_LFXO)
 #define OSC_SEL (cmuSelect_LFXO)
+#define CLK_PRESCALER (4)
 #endif
 
 

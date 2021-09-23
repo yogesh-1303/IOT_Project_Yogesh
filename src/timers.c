@@ -7,19 +7,18 @@
 
 #include "timers.h"
 
-// Include logging for this file
-//#define INCLUDE_LOG_DEBUG 1
-
-/*Macro definition to select appropriate clock frequency macro depending on energy mode*/
 
 #if(LOWEST_ENERGY_MODE==3)
 #define CLOCK_FREQ (1000)
+// Macro definition for Clock Prescaler
+#define PRESCALER (1)
 #else
 #define CLOCK_FREQ (32768)
-#endif
-
 // Macro definition for Clock Prescaler
 #define PRESCALER (4)
+#endif
+
+
 #define ACTUAL_CLK_FREQ ((CLOCK_FREQ) / (PRESCALER))
 
 // Macro definition for Compare Register 1 Value
@@ -27,7 +26,7 @@
 
 // Macro definition for Compare Register 2 Value
 #define COMPARE1_VALUE (COMPARE0_VALUE-((LETIMER_ON_TIME_MS*ACTUAL_CLK_FREQ)/1000))
-//#define COMPARE2_VALUE ((LETIMER_ON_TIME_MS*ACTUAL_CLK_FREQ)/1000)
+//#define COMPARE1_VALUE ((LETIMER_ON_TIME_MS*ACTUAL_CLK_FREQ)/1000)
 
 #define MICROSEC_PER_SEC (1000000)
 
