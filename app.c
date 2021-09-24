@@ -169,7 +169,7 @@ SL_WEAK void app_process_action(void)
      if (event == evtUFEvent){
 
         //LOG_INFO("POWER ON SENSOR @ %d\r",loggerGetTimestamp());
-         LOG_INFO("POWER ON SENSOR @ ");
+         //LOG_INFO("POWER ON SENSOR @\r");
 
         // Enable Si7021 by setting its enable signal high
         Enable_si7021(true);

@@ -23,7 +23,7 @@ void schedulerSetI2CdoneEvent(){
 
 
 }
-
+/*
 void schedulerSetI2CwriteEvent(){
 
    CORE_DECLARE_IRQ_STATE;
@@ -61,22 +61,7 @@ void schedulerSetWaitTempReadyEvent(){
 
   CORE_EXIT_CRITICAL();
 
-}
-
-
-void schedulerSetCOMP1Event(){
-
-  CORE_DECLARE_IRQ_STATE;
-
-  CORE_ENTER_CRITICAL();
-
-  my_events=evtComp1Event;
-
-  CORE_EXIT_CRITICAL();
-
-}
-
-void schedulerSetI2CprocesstempEvent(){
+  void schedulerSetI2CprocesstempEvent(){
 
   CORE_DECLARE_IRQ_STATE;
 
@@ -102,6 +87,23 @@ void schedulerSetI2CpowerdownEvent(){
 
 
 }
+
+}*/
+
+
+void schedulerSetCOMP1Event(){
+
+  CORE_DECLARE_IRQ_STATE;
+
+  CORE_ENTER_CRITICAL();
+
+  my_events=evtComp1Event;
+
+  CORE_EXIT_CRITICAL();
+
+}
+
+
 
 void schedulerSetUFEvent(){
 
@@ -154,7 +156,7 @@ uint32_t getNextEvent(){
 
     }
 
-    case evtI2CwriteEvent:{
+    /*case evtI2CwriteEvent:{
 
       evt=4;
       break;
@@ -187,7 +189,7 @@ uint32_t getNextEvent(){
       evt=8;
       break;
 
-    }
+    }*/
 
     default: break;
 

@@ -21,11 +21,11 @@ typedef enum {
   evtComp1Event=1,
   evtUFEvent=2,
   evtI2CdoneEvent=3,
-  evtI2CwriteEvent=4,
+  /*evtI2CwriteEvent=4,
   evtSetWaitTempReadyEvent=5,
   evtI2CreadEvent=6,
   evtI2CprocesstempEvent=7,
-  evtI2CpowerdownEvent=8,
+  evtI2CpowerdownEvent=8,*/
   totalevents
 }event;
 
@@ -33,6 +33,11 @@ void schedulerSetNOEvent();
 
 void schedulerSetI2CdoneEvent();
 
+void schedulerSetCOMP1Event();
+
+void schedulerSetUFEvent();
+
+/*
 void schedulerSetI2CwriteEvent();
 
 void schedulerSetI2CreadEvent();
@@ -41,11 +46,9 @@ void schedulerSetWaitTempReadyEvent();
 
 void schedulerSetI2CprocesstempEvent();
 
-void schedulerSetI2CpowerdownEvent();
+void schedulerSetI2CpowerdownEvent();*/
 
-void schedulerSetCOMP1Event();
 
-void schedulerSetUFEvent();
 
 uint32_t getNextEvent();
 
