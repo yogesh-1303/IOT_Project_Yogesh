@@ -14,20 +14,7 @@
 #include "em_letimer.h"
 #include "efr32bg13p632f512gm48.h"
 
-// enumeration for various events on interrupt
-typedef enum {
 
-  evtNOEvent=0,
-  evtComp1Event=1,
-  evtUFEvent=2,
-  evtI2CdoneEvent=3,
-  /*evtI2CwriteEvent=4,
-  evtSetWaitTempReadyEvent=5,
-  evtI2CreadEvent=6,
-  evtI2CprocesstempEvent=7,
-  evtI2CpowerdownEvent=8,*/
-  totalevents
-}event;
 
 void schedulerSetNOEvent();
 
@@ -37,20 +24,9 @@ void schedulerSetCOMP1Event();
 
 void schedulerSetUFEvent();
 
-/*
-void schedulerSetI2CwriteEvent();
-
-void schedulerSetI2CreadEvent();
-
-void schedulerSetWaitTempReadyEvent();
-
-void schedulerSetI2CprocesstempEvent();
-
-void schedulerSetI2CpowerdownEvent();*/
-
-
-
 uint32_t getNextEvent();
+
+void State_Machine(void);
 
 
 #endif /* SRC_SCHEDULER_H_ */

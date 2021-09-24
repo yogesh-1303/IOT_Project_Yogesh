@@ -18,7 +18,8 @@
 
 #define ACTUAL_CLK_FREQ ((CLOCK_FREQ) / (PRESCALER))
 
-uint32_t rollover_count=0;
+// Volatile variable to track number of rollovers since system is up
+volatile uint32_t rollover_count=0;
 
 
 
@@ -49,16 +50,16 @@ void LETIMER0_IRQHandler(void){
       // Set the appropriate event in scheduler
       schedulerSetUFEvent();
 
+      CORE_DECLARE_IRQ_STATE;                         // Save system interrupt state
+
+      CORE_ENTER_CRITICAL();                          // Start critical section
+
       // Increament underflow count
       rollover_count++;
 
+      CORE_EXIT_CRITICAL();                           // End critical section
 
   }
-
-  // Clear Interrupt Sorces
-  //LETIMER_IntClear(LETIMER0,LETIMER_IF_COMP0|LETIMER_IF_COMP1 |LETIMER_IF_UF);
-
-
 
 
 }
@@ -70,6 +71,7 @@ uint32_t letimerMilliseconds(){
   uint32_t milli_sec;
   uint32_t current_count = LETIMER_CounterGet(LETIMER0);
 
+  // Add rollover count plus number of current counter ticks passed
   milli_sec = (rollover_count * LETIMER_PERIOD_MS) + (((compare0_value-current_count) *1000)/ACTUAL_CLK_FREQ);
 
   return milli_sec;

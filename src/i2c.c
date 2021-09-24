@@ -17,15 +17,19 @@
 // Measure temperature No Hold Master Mode
 #define MEASURE_TEMP_CMD (0xF3)
 
+// Master mode transfer message structure
 I2C_TransferSeq_TypeDef transferSequence;
+
+// Variable for temperature commands
 uint8_t cmd_data;
+
+// Variable for temperature in celsius
 uint16_t read_data;
 
-uint8_t *temp_data;
+// Buffer for storing read data
+uint8_t *temp_buffer;
 
 void I2C_init(void){
-
-  uint32_t i2c_freq=0;
 
   // Assign values for I2C init
   I2CSPM_Init_TypeDef i2cspm = {
@@ -46,7 +50,7 @@ void I2C_init(void){
   // Initialize I2C0
   I2CSPM_Init(&i2cspm);
 
-  i2c_freq=I2C_BusFreqGet(I2C0);
+  //i2c_freq=I2C_BusFreqGet(I2C0);
 
 
 }
@@ -57,18 +61,20 @@ void I2C_Read_Si7021(void){
   I2C_TransferReturn_TypeDef check_transfer;
 
   // Allocate Memory for read buffer to store temperature data
-  temp_data=(uint8_t*)malloc(sizeof(uint8_t)*2);
+  temp_buffer=(uint8_t*)malloc(sizeof(uint8_t)*2);
 
 
   I2C_init();
 
-  transferSequence.addr = SI70_I2C_ADDR<<1;
-  transferSequence.flags = I2C_FLAG_READ;
-  transferSequence.buf[0].data = temp_data,
-  transferSequence.buf[0].len = sizeof(temp_data),
+  transferSequence.addr = SI70_I2C_ADDR<<1;             // Si7021 I2C Address
+  transferSequence.flags = I2C_FLAG_READ;               // Set transfer flas as Read
+  transferSequence.buf[0].data = temp_buffer,           // Assign buffer to store read data
+  transferSequence.buf[0].len = sizeof(temp_buffer),    // Assign size of the buffer
 
+  // Enable I2C Interrupt
   NVIC_EnableIRQ(I2C0_IRQn);
 
+  // Prepare and Start I2C Transfer
   check_transfer = I2C_TransferInit(I2C0, &transferSequence);
 
 
@@ -127,13 +133,15 @@ void I2C_Write_Si7021(void){
   // Measure temperature No Hold Master Mode command
   cmd_data = MEASURE_TEMP_CMD;
 
-  transferSequence.addr = SI70_I2C_ADDR<<1;
-  transferSequence.flags = I2C_FLAG_WRITE;
-  transferSequence.buf[0].data = &cmd_data;
-  transferSequence.buf[0].len = sizeof(cmd_data);
+  transferSequence.addr = SI70_I2C_ADDR<<1;                // Si7021 I2C Address
+  transferSequence.flags = I2C_FLAG_WRITE;                 // Set transfer flas as write
+  transferSequence.buf[0].data = &cmd_data;                // Assign address of Temperature command
+  transferSequence.buf[0].len = sizeof(cmd_data);          // Assign size
 
+  // Enable I2C Interrupt
   NVIC_EnableIRQ(I2C0_IRQn);
 
+  // Prepare and Start I2C Transfer
   check_transfer = I2C_TransferInit(I2C0, &transferSequence);
 
 
@@ -209,22 +217,19 @@ void process_temp_si7021(void){
 
   uint16_t celsius = 0;
 
-      // Combine 8 bit words by left shiffting MSB by 8
-      temp=(256*temp_data[0])+temp_data[1];
+  // Combine 8 bit words by left shiffting MSB by 8
+  temp=(256*temp_buffer[0])+temp_buffer[1];
 
-     // Convert Temperarure Code to degree Celsius
-      celsius = ((175.72*(temp))/65535)  - 46.85;
+  // Convert Temperarure Code to degree Celsius
+  celsius = ((175.72*(temp))/65535)  - 46.85;
 
-      // Free allocated buffer
-      free(temp_data);
+  // Free allocated buffer
+  free(temp_buffer);
 
-      read_data=celsius;
+  read_data=celsius;
 
-      // LOG the temperature
-      LOG_INFO("Current Temperature : %d\r",(int32_t)read_data);
-
-      // Set temperature after converting temp code to celsius
-
+  // LOG the temperature
+  LOG_INFO("Current Temperature : %d\r",(int32_t)read_data);
 
 
 }
@@ -234,8 +239,10 @@ void I2C0_IRQHandler(void){
 
   I2C_TransferReturn_TypeDef check_transfer;
 
+  // Continue the initiated I2C transfer
   check_transfer = I2C_Transfer(I2C0);
 
+  // Check status of transfer
   if (check_transfer == i2cTransferDone) {
 
       schedulerSetI2CdoneEvent();
@@ -284,9 +291,6 @@ void I2C0_IRQHandler(void){
 
 
   }
-
-
-
 
 
 }

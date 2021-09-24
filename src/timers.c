@@ -24,9 +24,6 @@
 // Macro definition for Compare Register 1 Value
 #define COMPARE0_VALUE ((LETIMER_PERIOD_MS*ACTUAL_CLK_FREQ)/1000)
 
-// Macro definition for Compare Register 2 Value
-#define COMPARE1_VALUE (COMPARE0_VALUE-((LETIMER_ON_TIME_MS*ACTUAL_CLK_FREQ)/1000))
-//#define COMPARE1_VALUE ((LETIMER_ON_TIME_MS*ACTUAL_CLK_FREQ)/1000)
 
 #define MICROSEC_PER_SEC (1000000)
 
@@ -68,8 +65,6 @@ void Timer_load(){
    // Load Value into compare register 0
    LETIMER_CompareSet(LETIMER0,0,COMPARE0_VALUE);
 
-   // Load Value into compare register 1
-   //LETIMER_CompareSet(LETIMER0,1,0);
 
 }
 
@@ -119,7 +114,7 @@ void Timer_Printcount(){
  */
 void Timer_InterruptEnable(){
 
-  // Enable Comp0 Comp1 and Underflow Interrupts
+  // Enable Underflow Interrupt
   LETIMER_IntEnable(LETIMER0,LETIMER_IEN_UF);
 
 }
@@ -152,7 +147,7 @@ void timerWaitUs(uint32_t us_wait){
   // Range Check for total ticks
   if(total_ticks > (COMPARE0_VALUE)){
 
-      //LOG_ERRO("Out of Range Value\r");
+      //LOG_ERROR("Out of Range Value\r");
   }
 
   now_count=LETIMER_CounterGet(LETIMER0);
@@ -217,8 +212,6 @@ void timerWaitUs_irq(uint32_t us_wait){
 
        LETIMER_CompareSet(LETIMER0,1,set_count);
 
-       flag_wait=1;
-
        //Enable comp1 Interrupt
        LETIMER_IntEnable(LETIMER0, LETIMER_IEN_COMP1);
 
@@ -233,16 +226,11 @@ void timerWaitUs_irq(uint32_t us_wait){
 
        LETIMER_CompareSet(LETIMER0,1,set_count);
 
-       flag_wait=1;
-
        //Enable comp1 Interrupt
        LETIMER_IntEnable(LETIMER0, LETIMER_IEN_COMP1);
 
 
-
    }
-
-   /*Sleep to EM3*/
 
 
 }

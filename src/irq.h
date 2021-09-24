@@ -23,7 +23,10 @@
  */
 void LETIMER0_IRQHandler(void);
 
-
+/* Function that returns number of milliseconds since starup
+ * PARAMETERS : NONE
+ * RETURNS    : NONE
+ */
 uint32_t letimerMilliseconds();
 
 

@@ -45,9 +45,6 @@
 
 #include "src/log.h"
 
-uint8_t flag_wait=0;
-
-
 
 
 /*****************************************************************************
@@ -128,15 +125,6 @@ SL_WEAK void app_init(void)
 
 }
 
-typedef enum uint32_t{
-  IDLE_State,
-  POWERON_State,
-  I2Cwrite_State,
-  I2Cread_State,
-  POWERDOWN_State,
-  PROCESSTEMP_State
-}state_t;
-
 
 
 /**************************************************************************//**
@@ -150,126 +138,7 @@ SL_WEAK void app_process_action(void)
   //         We will create/use a scheme that is far more energy efficient in
   //         later assignments.
 
-  uint32_t event;
-  state_t current_state ;
-  static state_t next_state = IDLE_State;
-
-  current_state = next_state;
-
-  event=getNextEvent();
-
-  switch(current_state){
-
-    case IDLE_State:{
-     next_state = IDLE_State;
-
-     if (event == evtUFEvent){
-
-         //LOG_INFO("POWER ON SENSOR @\r");
-
-        // Enable Si7021 by setting its enable signal high
-        Enable_si7021(true);
-
-        // Wait for Power up time
-        timerWaitUs_irq(80000);
-
-        next_state = POWERON_State;
-
-     }
-     break;
-    }
-
-    case POWERON_State:{
-
-     next_state = POWERON_State;
-
-     if (event == evtComp1Event){
-
-         //if (previous_state == POWERON_State) next_state = POWERON_State;
-
-         //else if (previous_state == POWERON_State) next_state = POWERON_State;
-         I2C_Write_Si7021();
-         next_state = I2Cwrite_State;
-
-         sl_power_manager_add_em_requirement(EM1);
-
-     }
-     break;
-    }
-
-    case I2Cwrite_State:{
-
-     next_state = I2Cwrite_State;
-
-     if (event == evtI2CdoneEvent){
-
-         sl_power_manager_remove_em_requirement(EM1);
-
-         timerWaitUs_irq(10800);
-         next_state = I2Cread_State;
-
-     }
-     break;
-    }
-
-    case I2Cread_State:{
-
-       next_state = I2Cread_State;
-
-       if (event == evtComp1Event){
-
-           I2C_Read_Si7021();
-
-           next_state = POWERDOWN_State;
-
-           sl_power_manager_add_em_requirement(EM1);
-
-
-       }
-       break;
-      }
-
-    case POWERDOWN_State:{
-
-      next_state = POWERDOWN_State;
-
-      if (event == evtI2CdoneEvent){
-
-       sl_power_manager_remove_em_requirement(EM1);
-
-       Enable_si7021(false);
-
-       next_state = PROCESSTEMP_State;
-      }
-
-       break;
-      }
-
-
-    case PROCESSTEMP_State:{
-
-       process_temp_si7021();
-
-       next_state = IDLE_State;
-
-       break;
-      }
-
-    default: break;
-
-
-  }
-
-
-
-
-  /*gpioLed0SetOn();
-
-  timerWaitUs(1000000);
-
-  gpioLed0SetOff();
-
-  timerWaitUs(1000000);*/
+  State_Machine();
 
 
 }
