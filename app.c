@@ -133,9 +133,8 @@ typedef enum uint32_t{
   POWERON_State,
   I2Cwrite_State,
   I2Cread_State,
-  PROCESSTEMP_State,
   POWERDOWN_State,
-
+  PROCESSTEMP_State
 }state_t;
 
 
@@ -155,8 +154,6 @@ SL_WEAK void app_process_action(void)
   state_t current_state ;
   static state_t next_state = IDLE_State;
 
-  state_t previous_state;
-
   current_state = next_state;
 
   event=getNextEvent();
@@ -168,7 +165,6 @@ SL_WEAK void app_process_action(void)
 
      if (event == evtUFEvent){
 
-        //LOG_INFO("POWER ON SENSOR @ %d\r",loggerGetTimestamp());
          //LOG_INFO("POWER ON SENSOR @\r");
 
         // Enable Si7021 by setting its enable signal high
@@ -194,6 +190,7 @@ SL_WEAK void app_process_action(void)
          //else if (previous_state == POWERON_State) next_state = POWERON_State;
          I2C_Write_Si7021();
          next_state = I2Cwrite_State;
+
          sl_power_manager_add_em_requirement(EM1);
 
      }
@@ -207,6 +204,7 @@ SL_WEAK void app_process_action(void)
      if (event == evtI2CdoneEvent){
 
          sl_power_manager_remove_em_requirement(EM1);
+
          timerWaitUs_irq(10800);
          next_state = I2Cread_State;
 
@@ -222,7 +220,7 @@ SL_WEAK void app_process_action(void)
 
            I2C_Read_Si7021();
 
-           next_state = PROCESSTEMP_State;
+           next_state = POWERDOWN_State;
 
            sl_power_manager_add_em_requirement(EM1);
 
@@ -231,26 +229,26 @@ SL_WEAK void app_process_action(void)
        break;
       }
 
-    case PROCESSTEMP_State:{
+    case POWERDOWN_State:{
 
-      next_state = PROCESSTEMP_State;
+      next_state = POWERDOWN_State;
 
       if (event == evtI2CdoneEvent){
 
        sl_power_manager_remove_em_requirement(EM1);
 
-       process_temp_si7021();
+       Enable_si7021(false);
 
-       next_state = POWERDOWN_State;
+       next_state = PROCESSTEMP_State;
       }
 
        break;
       }
 
 
-    case POWERDOWN_State:{
+    case PROCESSTEMP_State:{
 
-       Enable_si7021(false);
+       process_temp_si7021();
 
        next_state = IDLE_State;
 
