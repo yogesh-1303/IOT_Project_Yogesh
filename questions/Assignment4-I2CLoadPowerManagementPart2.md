@@ -44,7 +44,7 @@ See [Mastering Markdown](https://guides.github.com/features/mastering-markdown/)
    By analyzing the energy diagram from energy profiler it can be confirmed that EFR32 is sleeping in EM1 mode during I2C transfers-
    At time instant T1 Si7021 is turned ON and at time instant T2 EFR32 sleeps to EM3 for Power Up period. At time instant T3 EFR32 performs Write transfer and sleeps to EM1 energy mode until transfer is complete.  
    At time instant T4 EFR32 sleeps for 10.8 mS in EM3 energy mode while waiting for value to be ready. At time instant T5 EFR32 performs I2C read transfer and sleeps to EM1 mode until read is complete, following which it sleeps to EM3.  
-   Empirically through trial and error I have tested that the I2C peripheral of EFR32 works only in EM1 mode and the temperature readings from Si7021 confirm the same.
+   Empirically through trial and error I have tested that the I2C peripheral of EFR32 worked only in EM1 mode and no energy mode below that which the temperature readings from Si7021 confirmed.
    
    [Avg_current_per_period]: https://github.com/CU-ECEN-5823/ecen5823-assignment4-shni9045/blob/master/questions/screenshots/Assignment_4/PERIOD_AVG.png
    [Avg_current_LPM_Off]: https://github.com/CU-ECEN-5823/ecen5823-assignment4-shni9045/blob/master/questions/screenshots/Assignment_4/OFF_AVG.png
