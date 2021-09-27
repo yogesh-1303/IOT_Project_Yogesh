@@ -26,9 +26,11 @@ See [Mastering Markdown](https://guides.github.com/features/mastering-markdown/)
    ![duration_lpm_on] [duration_lpm_on]
 
 5. Compute what the total operating time of your design for assignment 4 would be in hours, assuming a 1000mAh battery power supply?
-   Answer: My design has an average current consumption per period of 14.48 uA per 3 Second period. 
- 
-   Total operating time on 1000 mAH battery = Battery Capacity/Load Current = 1000 / 0.01448 = 69,060 Hours = 7.8835616 Years
+   Answer: My design has an average current consumption per period of 14.48 uA per 3 Second period.  
+   Hence, current consumed per hour is given by,  
+   14.48 * (Intervals Per Minute) * (Minutes per Hour) = 14.48*20*60 = 17376 uAH = 17.376 mAH  
+   
+   Total operating time on 1000 mAH battery = 1000 / 17.376 = 57.55 Hours
    
    
 6. How has the power consumption performance of your design changed since the previous assignment?
