@@ -34,13 +34,15 @@ typedef enum uint32_t{
 // global variable for checking triggered event
 uint32_t my_events;
 
+
+
 void schedulerSetI2CdoneEvent(){
 
    CORE_DECLARE_IRQ_STATE;
 
    CORE_ENTER_CRITICAL();
 
-   my_events=evtI2CdoneEvent;
+   sl_bt_external_signal(evtI2CdoneEvent);
 
    CORE_EXIT_CRITICAL();
 
@@ -54,7 +56,7 @@ void schedulerSetCOMP1Event(){
 
   CORE_ENTER_CRITICAL();
 
-  my_events=evtComp1Event;
+  sl_bt_external_signal(evtComp1Event);
 
   CORE_EXIT_CRITICAL();
 
@@ -68,7 +70,7 @@ void schedulerSetUFEvent(){
 
   CORE_ENTER_CRITICAL();
 
-  my_events=evtUFEvent;
+  sl_bt_external_signal(evtUFEvent);
 
   CORE_EXIT_CRITICAL();
 
@@ -80,143 +82,63 @@ void schedulerSetNOEvent(){
 
   CORE_ENTER_CRITICAL();
 
-  my_events=evtNOEvent;
+  sl_bt_external_signal(evtNOEvent);
 
   CORE_EXIT_CRITICAL();
 
 }
 
-uint32_t getNextEvent(){
-
-  uint32_t evt=0;
-
-  switch(my_events){
-
-    case evtComp1Event:{
-
-      evt=1;
-      break;
-
-    }
-
-    case evtUFEvent:{
-
-      evt=2;
-      break;
-
-    }
-
-    case evtI2CdoneEvent:{
-
-      evt=3;
-      break;
-
-    }
 
 
-    default: break;
 
-  }
+void state_machine(sl_bt_msg_t *evt){
 
-   CORE_DECLARE_IRQ_STATE;
+  if (SL_BT_MSG_ID(evt->header) == sl_bt_evt_system_external_signal_id){
 
-   CORE_ENTER_CRITICAL();
-
-   my_events=evtNOEvent;
-
-   CORE_EXIT_CRITICAL();
-
-   return evt;
-
-
-}
-
-
-void State_Machine(void){
-
-   uint32_t event;
-   state_t current_state ;
-   static state_t next_state = IDLE_State;
-
-   current_state = next_state;
-
-   event=getNextEvent();
-
-   switch(current_state){
+  switch(evt->data.evt_system_external_signal.extsignals){
 
      case IDLE_State:{
-      next_state = IDLE_State;
 
-      if (event == evtUFEvent){
+       //LOG_INFO("POWER ON SENSOR @\r");
 
-          //LOG_INFO("POWER ON SENSOR @\r");
+       // Enable Si7021 by setting its enable signal high
+       Enable_si7021(true);
 
-         // Enable Si7021 by setting its enable signal high
-         Enable_si7021(true);
+       // Wait for Power up time
+       timerWaitUs_irq(80000);
 
-         // Wait for Power up time
-         timerWaitUs_irq(80000);
-
-         next_state = POWERON_State;
-
-      }
-      break;
+       break;
      }
 
      case POWERON_State:{
 
-      next_state = POWERON_State;
+       I2C_Write_Si7021();
+       sl_power_manager_add_em_requirement(EM1);
 
-      if (event == evtComp1Event){
-
-          I2C_Write_Si7021();
-          next_state = I2Cwrite_State;
-
-          sl_power_manager_add_em_requirement(EM1);
-
-      }
-      break;
+       break;
      }
 
      case I2Cwrite_State:{
 
-      next_state = I2Cwrite_State;
+       NVIC_DisableIRQ(I2C0_IRQn);
 
-      if (event == evtI2CdoneEvent){
+       sl_power_manager_remove_em_requirement(EM1);
 
-          NVIC_DisableIRQ(I2C0_IRQn);
+       timerWaitUs_irq(10800);
 
-          sl_power_manager_remove_em_requirement(EM1);
-
-          timerWaitUs_irq(10800);
-          next_state = I2Cread_State;
-
-      }
-      break;
+       break;
      }
 
      case I2Cread_State:{
 
-        next_state = I2Cread_State;
+       I2C_Read_Si7021();
+       sl_power_manager_add_em_requirement(EM1);
 
-        if (event == evtComp1Event){
+       break;
 
-            I2C_Read_Si7021();
-
-            next_state = POWERDOWN_State;
-
-            sl_power_manager_add_em_requirement(EM1);
-
-
-        }
-        break;
-       }
+     }
 
      case POWERDOWN_State:{
-
-       next_state = POWERDOWN_State;
-
-       if (event == evtI2CdoneEvent){
 
         NVIC_DisableIRQ(I2C0_IRQn);
 
@@ -226,9 +148,6 @@ void State_Machine(void){
 
         process_temp_si7021();
 
-        next_state = IDLE_State;
-
-       }
 
         break;
        }
@@ -239,9 +158,7 @@ void State_Machine(void){
 
    }
 
-
-
-
+  }
 
 }
 

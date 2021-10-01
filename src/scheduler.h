@@ -10,11 +10,10 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <sl_bt_api.h>
 #include "app.h"
 #include "em_letimer.h"
 #include "efr32bg13p632f512gm48.h"
-
-
 
 void schedulerSetNOEvent();
 
@@ -24,9 +23,7 @@ void schedulerSetCOMP1Event();
 
 void schedulerSetUFEvent();
 
-uint32_t getNextEvent();
-
-void State_Machine(void);
+void state_machine(sl_bt_msg_t *evt);
 
 
 #endif /* SRC_SCHEDULER_H_ */

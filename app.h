@@ -66,8 +66,8 @@
 
 //#define LOWEST_ENERGY_MODE (0)
 //#define LOWEST_ENERGY_MODE (1)
-//#define LOWEST_ENERGY_MODE (2)
-#define LOWEST_ENERGY_MODE (3)
+#define LOWEST_ENERGY_MODE (2)
+//#define LOWEST_ENERGY_MODE (3)
 
 #define EM0 (0)
 #define EM1 (1)
