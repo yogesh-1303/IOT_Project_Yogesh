@@ -95,65 +95,105 @@ void state_machine(sl_bt_msg_t *evt){
 
   if (SL_BT_MSG_ID(evt->header) == sl_bt_evt_system_external_signal_id){
 
-  switch(evt->data.evt_system_external_signal.extsignals){
+     state_t current_state ;
+     static state_t next_state = IDLE_State;
 
-     case IDLE_State:{
-
-       //LOG_INFO("POWER ON SENSOR @\r");
-
-       // Enable Si7021 by setting its enable signal high
-       Enable_si7021(true);
-
-       // Wait for Power up time
-       timerWaitUs_irq(80000);
-
-       break;
-     }
-
-     case POWERON_State:{
-
-       I2C_Write_Si7021();
-       sl_power_manager_add_em_requirement(EM1);
-
-       break;
-     }
-
-     case I2Cwrite_State:{
-
-       NVIC_DisableIRQ(I2C0_IRQn);
-
-       sl_power_manager_remove_em_requirement(EM1);
-
-       timerWaitUs_irq(10800);
-
-       break;
-     }
-
-     case I2Cread_State:{
-
-       I2C_Read_Si7021();
-       sl_power_manager_add_em_requirement(EM1);
-
-       break;
-
-     }
-
-     case POWERDOWN_State:{
-
-        NVIC_DisableIRQ(I2C0_IRQn);
-
-        sl_power_manager_remove_em_requirement(EM1);
-
-        Enable_si7021(false);
-
-        process_temp_si7021();
+     current_state = next_state;
 
 
-        break;
-       }
+      switch(current_state){
+
+        case IDLE_State:{
+             next_state = IDLE_State;
+
+             if (evt->data.evt_system_external_signal.extsignals == evtUFEvent){
+
+                 //LOG_INFO("POWER ON SENSOR @\r");
+
+                // Enable Si7021 by setting its enable signal high
+                Enable_si7021(true);
+
+                // Wait for Power up time
+                timerWaitUs_irq(80000);
+
+                next_state = POWERON_State;
+
+             }
+             break;
+            }
+
+            case POWERON_State:{
+
+             next_state = POWERON_State;
+
+             if (evt->data.evt_system_external_signal.extsignals == evtComp1Event){
+
+                 I2C_Write_Si7021();
+                 next_state = I2Cwrite_State;
+
+                 sl_power_manager_add_em_requirement(EM1);
+
+             }
+             break;
+            }
+
+            case I2Cwrite_State:{
+
+             next_state = I2Cwrite_State;
+
+             if (evt->data.evt_system_external_signal.extsignals == evtI2CdoneEvent){
+
+                 NVIC_DisableIRQ(I2C0_IRQn);
+
+                 sl_power_manager_remove_em_requirement(EM1);
+
+                 timerWaitUs_irq(10800);
+                 next_state = I2Cread_State;
+
+             }
+             break;
+            }
+
+            case I2Cread_State:{
+
+               next_state = I2Cread_State;
+
+               if (evt->data.evt_system_external_signal.extsignals == evtComp1Event){
+
+                   I2C_Read_Si7021();
+
+                   next_state = POWERDOWN_State;
+
+                   sl_power_manager_add_em_requirement(EM1);
 
 
-     default: break;
+               }
+               break;
+              }
+
+            case POWERDOWN_State:{
+
+              next_state = POWERDOWN_State;
+
+              if (evt->data.evt_system_external_signal.extsignals == evtI2CdoneEvent){
+
+               NVIC_DisableIRQ(I2C0_IRQn);
+
+               sl_power_manager_remove_em_requirement(EM1);
+
+               Enable_si7021(false);
+
+               process_temp_si7021();
+
+               next_state = IDLE_State;
+
+              }
+
+               break;
+              }
+
+
+            default: break;
 
 
    }

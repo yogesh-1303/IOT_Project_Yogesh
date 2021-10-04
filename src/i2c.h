@@ -19,6 +19,8 @@
 #include "em_letimer.h"
 #include "efr32bg13p632f512gm48.h"
 
+extern uint16_t read_data;
+
 /*
  * Function to initialize i2c0
  * PARAMTERS - NONE

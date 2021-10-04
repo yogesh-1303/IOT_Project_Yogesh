@@ -58,6 +58,8 @@
 #include "src/i2c.h"
 #include "src/scheduler.h"
 
+#include "src/ble.h"
+
 
 // See: https://docs.silabs.com/gecko-platform/latest/service/power_manager/overview
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
