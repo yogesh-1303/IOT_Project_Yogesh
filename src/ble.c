@@ -52,8 +52,10 @@ void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute){
        }
 
      else {
-         LOG_ERROR( "[E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
+         LOG_ERROR( "WA [E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
       }
+
+     if(sl_bt_gatt_server_indication == (sl_bt_gatt_server_client_configuration_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags){
 
      sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,5,&htm_temperature_buffer[0]);
 
@@ -63,15 +65,17 @@ void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute){
      }
 
      else {
-        LOG_ERROR( "[E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
+        LOG_ERROR( "1SE [E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
      }
+    }
 
  }
 
  // confirmation of indication received from remove GATT client
  else if (sl_bt_gatt_server_confirmation == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
 
-     sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,5,&htm_temperature_buffer[0]);
+     if(sl_bt_gatt_server_indication == (sl_bt_gatt_server_client_configuration_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags){
+          sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,5,&htm_temperature_buffer[0]);
 
           if (sc != SL_STATUS_OK)
           {
@@ -79,8 +83,9 @@ void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute){
           }
 
           else {
-             LOG_ERROR( "[E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
+             LOG_ERROR( "2SE [E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
           }
+     }
  }
 
 
@@ -107,7 +112,8 @@ void transmit_temptype(sl_bt_msg_t *evt,uint16_t attribute){
           LOG_ERROR( "[E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
        }
 
-      sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,sizeof(temperature_type),&temperature_type);
+      if(sl_bt_gatt_server_indication == (sl_bt_gatt_server_client_configuration_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags){
+           sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,sizeof(temperature_type),&temperature_type);
 
            if (sc != SL_STATUS_OK)
            {
@@ -117,6 +123,7 @@ void transmit_temptype(sl_bt_msg_t *evt,uint16_t attribute){
            else {
               LOG_ERROR( "[E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
            }
+      }
 
 
 
@@ -125,7 +132,10 @@ void transmit_temptype(sl_bt_msg_t *evt,uint16_t attribute){
   // confirmation of indication received from remove GATT client
    else if (sl_bt_gatt_server_confirmation == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
 
-       sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,sizeof(temperature_type),&temperature_type);
+       if(sl_bt_gatt_server_indication == (sl_bt_gatt_server_client_configuration_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags){
+
+           sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,sizeof(temperature_type),&temperature_type);
+
 
             if (sc != SL_STATUS_OK)
             {
@@ -135,6 +145,7 @@ void transmit_temptype(sl_bt_msg_t *evt,uint16_t attribute){
             else {
                LOG_ERROR( "[E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
             }
+       }
    }
 
 
@@ -161,7 +172,8 @@ void transmit_tempinterval(sl_bt_msg_t *evt,uint16_t attribute){
             LOG_ERROR( "[E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
          }
 
-        sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,sizeof(measurement_interval),(uint8_t *)&measurement_interval);
+        if(sl_bt_gatt_server_indication == (sl_bt_gatt_server_client_configuration_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags){
+             sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,sizeof(measurement_interval),(uint8_t *)&measurement_interval);
 
              if (sc != SL_STATUS_OK)
              {
@@ -171,6 +183,7 @@ void transmit_tempinterval(sl_bt_msg_t *evt,uint16_t attribute){
              else {
                 LOG_ERROR( "[E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
              }
+        }
 
 
 
@@ -179,7 +192,9 @@ void transmit_tempinterval(sl_bt_msg_t *evt,uint16_t attribute){
     // confirmation of indication received from remove GATT client
      else if (sl_bt_gatt_server_confirmation == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
 
-         sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,sizeof(measurement_interval),(uint8_t *)&measurement_interval);
+         if(sl_bt_gatt_server_indication == (sl_bt_gatt_server_client_configuration_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags){
+
+             sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,sizeof(measurement_interval),(uint8_t *)&measurement_interval);
 
               if (sc != SL_STATUS_OK)
               {
@@ -189,12 +204,8 @@ void transmit_tempinterval(sl_bt_msg_t *evt,uint16_t attribute){
               else {
                  LOG_ERROR( "[E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
               }
+         }
      }
-
-
-
-
-
 
 
 
