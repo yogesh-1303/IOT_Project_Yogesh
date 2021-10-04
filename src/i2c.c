@@ -84,30 +84,30 @@ void I2C_Read_Si7021(void){
       switch(check_transfer){
 
          case i2cTransferNack:{
-           LOG_ERROR("\n\rNACK Received");
+           LOG_ERROR("NACK Received\n\r");
            break;
          }
 
          case i2cTransferBusErr:{
-           LOG_ERROR("\n\rBus Error");
+           LOG_ERROR("Bus Error\n\r");
             break;
           }
 
          case i2cTransferArbLost:{
 
-           LOG_ERROR("\n\rArbitration lost");
+           LOG_ERROR("Arbitration lost\n\r");
              break;
            }
 
          case i2cTransferUsageFault:{
 
-           LOG_ERROR("\n\rUsage Fault");
+           LOG_ERROR("Usage Fault\n\r");
              break;
            }
 
          case i2cTransferSwFault:{
 
-           LOG_ERROR("\n\rSw Fault");
+           LOG_ERROR("Sw Fault\n\r");
            break;
            }
 
@@ -151,30 +151,30 @@ void I2C_Write_Si7021(void){
       switch(check_transfer){
 
          case i2cTransferNack:{
-           LOG_ERROR("\n\rNACK Received");
+           LOG_ERROR("NACK Received\n\r");
            break;
          }
 
          case i2cTransferBusErr:{
-           LOG_ERROR("\n\rBus Error");
+           LOG_ERROR("Bus Error\n\r");
             break;
           }
 
          case i2cTransferArbLost:{
 
-           LOG_ERROR("\n\rArbitration lost");
+           LOG_ERROR("Arbitration lost\n\r");
              break;
            }
 
          case i2cTransferUsageFault:{
 
-           LOG_ERROR("\n\rUsage Fault");
+           LOG_ERROR("Usage Fault\n\r");
              break;
            }
 
          case i2cTransferSwFault:{
 
-           LOG_ERROR("\n\rSw Fault");
+           LOG_ERROR("Sw Fault\n\r");
            break;
            }
 
@@ -229,7 +229,7 @@ void process_temp_si7021(void){
   read_data=celsius;
 
   // LOG the temperature
-  LOG_INFO("Current Temperature : %d\r",(int32_t)read_data);
+  LOG_INFO("Current Temperature : %d\n\r",(int32_t)read_data);
 
 
 }
@@ -255,30 +255,30 @@ void I2C0_IRQHandler(void){
       switch(check_transfer){
 
          case i2cTransferNack:{
-           LOG_ERROR("\n\rNACK Received");
+           LOG_ERROR("NACK Received\n\r");
            break;
          }
 
          case i2cTransferBusErr:{
-           LOG_ERROR("\n\rBus Error");
+           LOG_ERROR("Bus Error\n\r");
             break;
           }
 
          case i2cTransferArbLost:{
 
-           LOG_ERROR("\n\rArbitration lost");
+           LOG_ERROR("Arbitration lost\n\r");
              break;
            }
 
          case i2cTransferUsageFault:{
 
-           LOG_ERROR("\n\rUsage Fault");
+           LOG_ERROR("Usage Fault\n\r");
              break;
            }
 
          case i2cTransferSwFault:{
 
-           LOG_ERROR("\n\rSw Fault");
+           LOG_ERROR("Sw Fault\n\r");
            break;
            }
 

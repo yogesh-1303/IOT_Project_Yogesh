@@ -37,11 +37,19 @@ typedef struct {
   // values unique for server
   // The advertising set handle allocated from Bluetooth stack.
   uint8_t advertisingSetHandle;
-  bool status;
+  bool temp_measure_status;
+  bool temp_type_status;
+  bool temp_interval_status;
 
    // values unique for client
 
 } ble_data_struct_t;
+
+void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute);
+
+void transmit_temptype(sl_bt_msg_t *evt,uint16_t attribute);
+
+void transmit_tempinterval(sl_bt_msg_t *evt,uint16_t attribute);
 
 ble_data_struct_t* getBleDataPtr(void);
 

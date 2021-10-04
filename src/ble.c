@@ -15,7 +15,7 @@
 #define SL_BT_HT_TEMPERATURE_TYPE          (2)         ///SL_BT_HT_TEMPERATURE_TYPE_BODY
 
 // BLE private data
-ble_data_struct_t ble_data;
+ble_data_struct_t ble_data = {.temp_measure_status=false,.temp_type_status=false,.temp_interval_status=false};
 
 
 ble_data_struct_t* getBleDataPtr(){
@@ -48,12 +48,9 @@ void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute){
      sc = sl_bt_gatt_server_write_attribute_value(attribute,0,5,&htm_temperature_buffer[0]);
      if (sc != SL_STATUS_OK)
        {
-         LOG_ERROR("sl_bt_gatt_server_write_attribute_value() returned != 0 status=0x%04x\r", (unsigned int) sc);
+         LOG_ERROR("sl_bt_gatt_server_write_attribute_value() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
        }
 
-     else {
-         LOG_ERROR( "WA [E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
-      }
 
      if(sl_bt_gatt_server_indication == (sl_bt_gatt_server_client_configuration_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags){
 
@@ -61,11 +58,12 @@ void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute){
 
      if (sc != SL_STATUS_OK)
      {
-        LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\r", (unsigned int) sc);
+        LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
      }
 
      else {
-        LOG_ERROR( "1SE [E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
+         ble_data_struct_t* data = getBleDataPtr();
+         data->temp_measure_status = false;
      }
     }
 
@@ -79,17 +77,19 @@ void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute){
 
           if (sc != SL_STATUS_OK)
           {
-             LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04r", (unsigned int) sc);
+             LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04r\n\r", (unsigned int) sc);
           }
 
           else {
-             LOG_ERROR( "2SE [E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
-          }
+
+              ble_data_struct_t* data = getBleDataPtr();
+              data->temp_measure_status = true;
      }
  }
 
 
 
+}
 }
 
 void transmit_temptype(sl_bt_msg_t *evt,uint16_t attribute){
@@ -105,23 +105,21 @@ void transmit_temptype(sl_bt_msg_t *evt,uint16_t attribute){
 
       if (sc != SL_STATUS_OK)
        {
-          LOG_ERROR("sl_bt_gatt_server_write_attribute() returned != 0 status=0x%04x\r", (unsigned int) sc);
+          LOG_ERROR("sl_bt_gatt_server_write_attribute() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
        }
 
-       else {
-          LOG_ERROR( "[E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
-       }
 
       if(sl_bt_gatt_server_indication == (sl_bt_gatt_server_client_configuration_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags){
            sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,sizeof(temperature_type),&temperature_type);
 
            if (sc != SL_STATUS_OK)
            {
-              LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\r", (unsigned int) sc);
+              LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
            }
 
            else {
-              LOG_ERROR( "[E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
+               ble_data_struct_t* data = getBleDataPtr();
+               data->temp_type_status = false;
            }
       }
 
@@ -139,11 +137,14 @@ void transmit_temptype(sl_bt_msg_t *evt,uint16_t attribute){
 
             if (sc != SL_STATUS_OK)
             {
-               LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\r", (unsigned int) sc);
+               LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
             }
 
             else {
-               LOG_ERROR( "[E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
+
+                ble_data_struct_t* data = getBleDataPtr();
+                data->temp_type_status = true;
+
             }
        }
    }
@@ -165,23 +166,21 @@ void transmit_tempinterval(sl_bt_msg_t *evt,uint16_t attribute){
 
         if (sc != SL_STATUS_OK)
          {
-            LOG_ERROR("sl_bt_gatt_server_write_attribute() returned != 0 status=0x%04x\r", (unsigned int) sc);
+            LOG_ERROR("sl_bt_gatt_server_write_attribute() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
          }
 
-         else {
-            LOG_ERROR( "[E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
-         }
 
         if(sl_bt_gatt_server_indication == (sl_bt_gatt_server_client_configuration_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags){
              sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,sizeof(measurement_interval),(uint8_t *)&measurement_interval);
 
              if (sc != SL_STATUS_OK)
              {
-                LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\r", (unsigned int) sc);
+                LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
              }
 
              else {
-                LOG_ERROR( "[E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
+                 ble_data_struct_t* data = getBleDataPtr();
+                 data->temp_interval_status = false;
              }
         }
 
@@ -198,18 +197,22 @@ void transmit_tempinterval(sl_bt_msg_t *evt,uint16_t attribute){
 
               if (sc != SL_STATUS_OK)
               {
-                 LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\r", (unsigned int) sc);
+                 LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
               }
 
               else {
-                 LOG_ERROR( "[E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\r", (int)evt->data.evt_gatt_server_characteristic_status.status_flags);
+
+                  ble_data_struct_t* data = getBleDataPtr();
+                  data->temp_interval_status = true;
+              }
+
               }
          }
-     }
-
-
-
 }
+
+
+
+
 
 
 void handle_ble_event(sl_bt_msg_t *evt){
@@ -223,7 +226,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
       // Extract unique ID from BT Address.
       sc = sl_bt_system_get_identity_address(&ble_data.myAddress, &ble_data.myAddressType);
       if (sc != SL_STATUS_OK) {
-          LOG_ERROR("Error in getting identity\r");
+          LOG_ERROR("Error in getting identity\n\r");
           break;
       }
 
@@ -231,7 +234,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
       // Create an advertising set.
       sc = sl_bt_advertiser_create_set(&ble_data.advertisingSetHandle);
       if (sc != SL_STATUS_OK) {
-          LOG_ERROR("\nError in advertising\r");
+          LOG_ERROR("\nError in advertising\n\r");
           break;
       }
 
@@ -243,7 +246,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
               0,   // adv. duration
               0);  // max. num. adv. events
        if (sc != SL_STATUS_OK) {
-           LOG_ERROR("Error in setting advertising time\r");
+           LOG_ERROR("Error in setting advertising time\n\r");
            break;
        }
 
@@ -252,7 +255,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
               sl_bt_advertiser_general_discoverable,
               sl_bt_advertiser_connectable_scannable);
        if (sc != SL_STATUS_OK) {
-           LOG_ERROR("Error in starting advertising\r");
+           LOG_ERROR("Error in starting advertising\n\r");
            break;
        }
       break;
@@ -262,7 +265,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       sc =  sl_bt_advertiser_stop(ble_data.advertisingSetHandle);
       if (sc != SL_STATUS_OK) {
-          LOG_ERROR("Error in stopping advertising\r");
+          LOG_ERROR("Error in stopping advertising\n\r");
           break;
       }
 
@@ -275,7 +278,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
       0xffff);
 
       if (sc != SL_STATUS_OK) {
-          LOG_ERROR("Error in setting connection parameters\r");
+          LOG_ERROR("Error in setting connection parameters\n\r");
           break;
       }
       break;
@@ -289,7 +292,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
                     sl_bt_advertiser_general_discoverable,
                     sl_bt_advertiser_connectable_scannable);
              if (sc != SL_STATUS_OK) {
-                 LOG_ERROR("Error in starting advertising\r");
+                 LOG_ERROR("Error in starting advertising\n\r");
                  break;
              }
 
@@ -324,12 +327,6 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
           transmit_tempdata(evt,gattdb_measurement_interval);
 
-
-      }
-
-      if  (evt->data.evt_gatt_server_characteristic_status.characteristic == gattdb_intermediate_temperature){
-
-
       }
 
       break;
@@ -338,7 +335,20 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
     case sl_bt_evt_gatt_server_indication_timeout_id:{
 
-      //
+      ble_data_struct_t* data = getBleDataPtr();
+      if (data->temp_measure_status != true){
+
+          LOG_ERROR("Error in indication\n\r");
+      }
+
+      if (data->temp_type_status != true){
+
+          LOG_ERROR("Error in indication\n\r");
+      }
+      else if (data->temp_interval_status != true){
+
+           LOG_ERROR("Error in indication\n\r");
+       }
 
 
       break;
