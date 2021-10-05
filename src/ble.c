@@ -14,6 +14,11 @@
 
 #define SL_BT_HT_TEMPERATURE_TYPE          (2)         ///SL_BT_HT_TEMPERATURE_TYPE_BODY
 
+#define MEASUREMENT_INTERVAL               (2)
+
+// Variable to enable or disable measuremnt from Si7021
+uint8_t enable_measurement = 0;
+
 // BLE private data
 ble_data_struct_t ble_data = {.temp_measure_status=false,.temp_type_status=false,.temp_interval_status=false};
 
@@ -63,7 +68,7 @@ void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute){
 
      else {
          ble_data_struct_t* data = getBleDataPtr();
-         data->temp_measure_status = false;
+         data->temp_measure_status = true;
      }
     }
 
@@ -83,7 +88,7 @@ void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute){
           else {
 
               ble_data_struct_t* data = getBleDataPtr();
-              data->temp_measure_status = true;
+              data->temp_measure_status = false;
      }
  }
 
@@ -119,7 +124,7 @@ void transmit_temptype(sl_bt_msg_t *evt,uint16_t attribute){
 
            else {
                ble_data_struct_t* data = getBleDataPtr();
-               data->temp_type_status = false;
+               data->temp_type_status = true;
            }
       }
 
@@ -143,7 +148,7 @@ void transmit_temptype(sl_bt_msg_t *evt,uint16_t attribute){
             else {
 
                 ble_data_struct_t* data = getBleDataPtr();
-                data->temp_type_status = true;
+                data->temp_type_status = false;
 
             }
        }
@@ -157,7 +162,7 @@ void transmit_tempinterval(sl_bt_msg_t *evt,uint16_t attribute){
 
   sl_status_t sc;
 
-  uint16_t measurement_interval = 2;
+  uint16_t measurement_interval = MEASUREMENT_INTERVAL;
 
   if (sl_bt_gatt_server_client_config == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
 
@@ -180,7 +185,7 @@ void transmit_tempinterval(sl_bt_msg_t *evt,uint16_t attribute){
 
              else {
                  ble_data_struct_t* data = getBleDataPtr();
-                 data->temp_interval_status = false;
+                 data->temp_interval_status = true;
              }
         }
 
@@ -203,7 +208,7 @@ void transmit_tempinterval(sl_bt_msg_t *evt,uint16_t attribute){
               else {
 
                   ble_data_struct_t* data = getBleDataPtr();
-                  data->temp_interval_status = true;
+                  data->temp_interval_status = false;
               }
 
               }
@@ -263,6 +268,10 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
     case sl_bt_evt_connection_opened_id:{
 
+      enable_measurement = 1;
+
+      LOG_INFO("Connection Open\n\r");
+
       sc =  sl_bt_advertiser_stop(ble_data.advertisingSetHandle);
       if (sc != SL_STATUS_OK) {
           LOG_ERROR("Error in stopping advertising\n\r");
@@ -273,7 +282,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
       60,
       60,
       4,
-      600,
+      75,
       0xffff,
       0xffff);
 
@@ -286,6 +295,15 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
 
     case sl_bt_evt_connection_closed_id:{
+
+      ble_data_struct_t* data = getBleDataPtr();
+
+      // Close connection only if there is no indication in flight
+
+      while( data->temp_measure_status==true || data->temp_type_status == true ||data->temp_interval_status  == true );
+
+      enable_measurement = 0;
+      LOG_INFO("Connection Closed\n\r");
 
       sc = sl_bt_advertiser_start(
                     ble_data.advertisingSetHandle,
@@ -303,8 +321,28 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
     case  sl_bt_evt_connection_parameters_id:{
 
+      sc = sl_bt_connection_set_parameters ( (evt->data.evt_connection_opened.connection),
+            60,
+            60,
+            4,
+            75,
+            0xffff,
+            0xffff);
 
-      // LOG_INFO("");
+            if (sc != SL_STATUS_OK) {
+                LOG_ERROR("Error in setting connection parameters\n\r");
+                break;
+            }
+
+
+      LOG_INFO("Connection params: connection=%d, interval=%d, latency=%d, timeout=%d, securitymode=%d",
+               (int) (evt->data.evt_connection_parameters.connection),
+               (int) (evt->data.evt_connection_parameters.interval*1.25),
+               (int) (evt->data.evt_connection_parameters.latency),
+               (int) (evt->data.evt_connection_parameters.timeout*10),
+               (int) (evt->data.evt_connection_parameters.security_mode) );
+
+
       break;
     }
 
@@ -336,16 +374,16 @@ void handle_ble_event(sl_bt_msg_t *evt){
     case sl_bt_evt_gatt_server_indication_timeout_id:{
 
       ble_data_struct_t* data = getBleDataPtr();
-      if (data->temp_measure_status != true){
+      if (data->temp_measure_status == true){
 
           LOG_ERROR("Error in indication\n\r");
       }
 
-      if (data->temp_type_status != true){
+      if (data->temp_type_status == true){
 
           LOG_ERROR("Error in indication\n\r");
       }
-      else if (data->temp_interval_status != true){
+      else if (data->temp_interval_status == true){
 
            LOG_ERROR("Error in indication\n\r");
        }

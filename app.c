@@ -158,7 +158,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
   // Just a trick to hide a compiler warning about unused input parameter evt.
   // We will add real functionality here later.
   if (evt->header) {
-      printf(".\n");
+      printf("\n");
   }
 
   // Some events require responses from our application code,

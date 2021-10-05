@@ -45,6 +45,8 @@ typedef struct {
 
 } ble_data_struct_t;
 
+extern uint8_t enable_measurement;
+
 void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute);
 
 void transmit_temptype(sl_bt_msg_t *evt,uint16_t attribute);
