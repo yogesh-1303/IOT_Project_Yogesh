@@ -1,8 +1,8 @@
 /*
  * ble.c
+ * Attributes - soc_thermometer.c
+ *              Prof.David Sluiter Lecture 10 & 11
  *
- *  Created on: 01-Oct-2021
- *      Author: Shrikant
  */
 
 #include "ble.h"
@@ -282,13 +282,13 @@ void handle_ble_event(sl_bt_msg_t *evt){
       60,
       60,
       4,
-      75,
-      0xffff,
+      300,
+      0,
       0xffff);
 
       if (sc != SL_STATUS_OK) {
-          LOG_ERROR("Error in setting connection parameters\n\r");
-          break;
+
+          //LOG_ERROR("Error in setting connection parameters\n\r");
       }
       break;
     }
@@ -320,19 +320,6 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
 
     case  sl_bt_evt_connection_parameters_id:{
-
-      sc = sl_bt_connection_set_parameters ( (evt->data.evt_connection_opened.connection),
-            60,
-            60,
-            4,
-            75,
-            0xffff,
-            0xffff);
-
-            if (sc != SL_STATUS_OK) {
-                LOG_ERROR("Error in setting connection parameters\n\r");
-                break;
-            }
 
 
       LOG_INFO("Connection params: connection=%d, interval=%d, latency=%d, timeout=%d, securitymode=%d",

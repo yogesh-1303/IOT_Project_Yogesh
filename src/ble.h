@@ -1,8 +1,8 @@
 /*
  * ble.h
  *
- *  Created on: 01-Oct-2021
- *      Author: Shrikant
+ * Attributes - soc_thermometer.c
+ *              Prof.David Sluiter Lecture 10 & 11
  */
 
 #ifndef SRC_BLE_H_
