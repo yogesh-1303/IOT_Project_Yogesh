@@ -26,6 +26,9 @@
 #define LED1_port gpioPortF
 #define LED1_pin  5u
 
+#define EXTCOMIN_port gpioPortD
+#define EXTCOMIN_pin 13u
+
 
 
 
@@ -38,6 +41,7 @@ void gpioLed0SetOn();
 void gpioLed0SetOff();
 void gpioLed1SetOn();
 void gpioLed1SetOff();
+void gpioSetDisplayExtcomin(bool state);
 
 
 

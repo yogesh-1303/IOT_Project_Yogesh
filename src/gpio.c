@@ -36,6 +36,9 @@ void gpioInit()
  // Enable Pin of Si7021 Sensor
   GPIO_PinModeSet(gpioPortD, 15, gpioModePushPull, false);
 
+  // Enable Pin of Si7021 Sensor
+   GPIO_PinModeSet(EXTCOMIN_port, EXTCOMIN_pin, gpioModePushPull, false);
+
 
 
 } // gpioInit()
@@ -65,7 +68,21 @@ void gpioLed1SetOff()
 }
 
 
+void gpioSetDisplayExtcomin(bool state){
 
+  if (state == true){
+
+      GPIO_PinOutSet(EXTCOMIN_port,EXTCOMIN_pin);
+
+  }
+
+  else if (state == false){
+
+      GPIO_PinOutClear(EXTCOMIN_port,EXTCOMIN_pin);
+
+  }
+
+}
 
 
 

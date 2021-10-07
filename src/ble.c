@@ -30,7 +30,8 @@ ble_data_struct_t* getBleDataPtr(){
 }
 
 
-
+//struct gecko_msg_system_get_bt_address_rsp_t *lcdbtaddr;
+//sbd_addr *lcdbtaddr;
 
 void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute){
 
@@ -228,12 +229,29 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
     case sl_bt_evt_system_boot_id:{
 
+      char string_buffer[50];
+
+      //lcdbtaddr = gecko_cmd_system_get_bt_address();
+
+
+      displayInit();
+
+
+      displayPrintf(DISPLAY_ROW_NAME,"SERVER");
+
+      //sprintf(string_buffer,"%d:%d:%d:%d:%d:%d",lcdbtaddr->addr[0],lcdbtaddr->addr[1],lcdbtaddr->addr[2],lcdbtaddr->addr[3],lcdbtaddr->addr[4],lcdbtaddr->addr[5]);
+      //displayPrintf(DISPLAY_ROW_BTADDR,"%s", string_buffer);
+
+
       // Extract unique ID from BT Address.
       sc = sl_bt_system_get_identity_address(&ble_data.myAddress, &ble_data.myAddressType);
       if (sc != SL_STATUS_OK) {
           LOG_ERROR("Error in getting identity\n\r");
           break;
       }
+
+      sprintf(string_buffer,"%d:%d:%d:%d:%d:%d",ble_data.myAddress.addr[0],ble_data.myAddress.addr[1],ble_data.myAddress.addr[2],ble_data.myAddress.addr[3],ble_data.myAddress.addr[4],ble_data.myAddress.addr[5]);
+      displayPrintf(DISPLAY_ROW_BTADDR,"%s", string_buffer);
 
       //LOG_INFO("\nIdentity Retrieved");
       // Create an advertising set.
@@ -263,6 +281,9 @@ void handle_ble_event(sl_bt_msg_t *evt){
            LOG_ERROR("Error in starting advertising\n\r");
            break;
        }
+
+       //DISPLAY_ROW_CONNECTION
+       displayPrintf(DISPLAY_ROW_CONNECTION,"Advertising");
       break;
     }
 
@@ -270,7 +291,10 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       enable_measurement = 1;
 
+      displayPrintf(DISPLAY_ROW_CONNECTION,"Connected");
+
       LOG_INFO("Connection Open\n\r");
+
 
       sc =  sl_bt_advertiser_stop(ble_data.advertisingSetHandle);
       if (sc != SL_STATUS_OK) {
@@ -377,6 +401,14 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
 
       break;
+    }
+
+    case sl_bt_evt_system_soft_timer_id:{
+
+      displayUpdate();
+
+      break;
+
     }
 
 

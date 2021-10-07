@@ -35,6 +35,7 @@
 #include "glib.h" // the low-level graphics driver/library
 #include "dmd.h"  // the dot matrix display driver
 
+#include "src/i2c.h"
 
 
 /**

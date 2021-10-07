@@ -13,6 +13,7 @@
 #include <string.h>
 #include <assert.h>
 #include <sl_bt_api.h>
+#include "em_system.h"
 #include "app.h"
 #include "em_gpio.h"
 #include "efr32bg13p632f512gm48.h"
