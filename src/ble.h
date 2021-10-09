@@ -42,11 +42,12 @@ typedef struct {
   bool temp_type_status;
   bool temp_interval_status;
 
+  bool enable_measurement;
+
    // values unique for client
 
 } ble_data_struct_t;
 
-extern uint8_t enable_measurement;
 
 void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute);
 

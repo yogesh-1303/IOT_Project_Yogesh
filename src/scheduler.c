@@ -94,8 +94,9 @@ void schedulerSetNOEvent(){
 void state_machine(sl_bt_msg_t *evt){
 
   // Enable measurement only if connection is opened and disable measurement when closed
+  ble_data_struct_t* data = getBleDataPtr();
 
-  if (enable_measurement){
+  if (data->enable_measurement == true){
 
   if (SL_BT_MSG_ID(evt->header) == sl_bt_evt_system_external_signal_id){
 
@@ -185,7 +186,7 @@ void state_machine(sl_bt_msg_t *evt){
 
                sl_power_manager_remove_em_requirement(EM1);
 
-               Enable_si7021(false);
+               //Enable_si7021(false);
 
                process_temp_si7021();
 

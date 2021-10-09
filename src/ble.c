@@ -16,11 +16,9 @@
 
 #define MEASUREMENT_INTERVAL               (2)
 
-// Variable to enable or disable measuremnt from Si7021
-uint8_t enable_measurement = 0;
 
 // BLE private data
-ble_data_struct_t ble_data = {.temp_measure_status=false,.temp_type_status=false,.temp_interval_status=false};
+ble_data_struct_t ble_data = {.temp_measure_status=false,.temp_type_status=false,.temp_interval_status=false,.enable_measurement=false};
 
 
 ble_data_struct_t* getBleDataPtr(){
@@ -28,10 +26,6 @@ ble_data_struct_t* getBleDataPtr(){
   return (&ble_data);
 
 }
-
-
-//struct gecko_msg_system_get_bt_address_rsp_t *lcdbtaddr;
-//sbd_addr *lcdbtaddr;
 
 void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute){
 
@@ -49,7 +43,8 @@ void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute){
   // client characteristic configuration changed by remote GATT client
  if (sl_bt_gatt_server_client_config == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
 
-
+     // Check if notifications and indications are not disabled
+     if(((sl_bt_gatt_client_config_flag_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags) != sl_bt_gatt_disable){
      // -------------------------------// Write our local GATT DB// -------------------------------
      sc = sl_bt_gatt_server_write_attribute_value(attribute,0,5,&htm_temperature_buffer[0]);
      if (sc != SL_STATUS_OK)
@@ -57,8 +52,6 @@ void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute){
          LOG_ERROR("sl_bt_gatt_server_write_attribute_value() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
        }
 
-
-     if(sl_bt_gatt_server_indication == (sl_bt_gatt_server_client_configuration_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags){
 
      sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,5,&htm_temperature_buffer[0]);
 
@@ -71,31 +64,28 @@ void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute){
          ble_data_struct_t* data = getBleDataPtr();
          data->temp_measure_status = true;
      }
-    }
+
+
+     //Display Temperature on LCD
+     displayPrintf(DISPLAY_ROW_TEMPVALUE,"Temp=%d",read_data);
+  }
+
+     else if (sl_bt_gatt_disable == ((sl_bt_gatt_client_config_flag_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags)){
+
+         displayPrintf(DISPLAY_ROW_TEMPVALUE,"");
+
+     }
 
  }
 
- // confirmation of indication received from remove GATT client
+ // Confirmation of indication received from remove GATT client
  else if (sl_bt_gatt_server_confirmation == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
 
-     if(sl_bt_gatt_server_indication == (sl_bt_gatt_server_client_configuration_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags){
-          sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,5,&htm_temperature_buffer[0]);
+          ble_data_struct_t* data = getBleDataPtr();
+          data->temp_measure_status = false;
 
-          if (sc != SL_STATUS_OK)
-          {
-             LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04r\n\r", (unsigned int) sc);
-          }
-
-          else {
-
-              ble_data_struct_t* data = getBleDataPtr();
-              data->temp_measure_status = false;
-     }
  }
 
-
-
-}
 }
 
 void transmit_temptype(sl_bt_msg_t *evt,uint16_t attribute){
@@ -104,7 +94,11 @@ void transmit_temptype(sl_bt_msg_t *evt,uint16_t attribute){
 
   uint8_t temperature_type = SL_BT_HT_TEMPERATURE_TYPE;
 
+
   if (sl_bt_gatt_server_client_config == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
+
+      // Check if notifications and indications are not disabled
+      if(((sl_bt_gatt_client_config_flag_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags) != sl_bt_gatt_disable){
 
       // -------------------------------// Write our local GATT DB// -------------------------------
       sc = sl_bt_gatt_server_write_attribute_value(attribute,0,sizeof(temperature_type),&temperature_type);
@@ -114,48 +108,27 @@ void transmit_temptype(sl_bt_msg_t *evt,uint16_t attribute){
           LOG_ERROR("sl_bt_gatt_server_write_attribute() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
        }
 
+       sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,sizeof(temperature_type),&temperature_type);
 
-      if(sl_bt_gatt_server_indication == (sl_bt_gatt_server_client_configuration_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags){
-           sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,sizeof(temperature_type),&temperature_type);
+       if (sc != SL_STATUS_OK)
+       {
+          LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
+       }
 
-           if (sc != SL_STATUS_OK)
-           {
-              LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
-           }
-
-           else {
-               ble_data_struct_t* data = getBleDataPtr();
-               data->temp_type_status = true;
-           }
-      }
-
-
-
-  }
-
-  // confirmation of indication received from remove GATT client
-   else if (sl_bt_gatt_server_confirmation == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
-
-       if(sl_bt_gatt_server_indication == (sl_bt_gatt_server_client_configuration_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags){
-
-           sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,sizeof(temperature_type),&temperature_type);
-
-
-            if (sc != SL_STATUS_OK)
-            {
-               LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
-            }
-
-            else {
-
-                ble_data_struct_t* data = getBleDataPtr();
-                data->temp_type_status = false;
-
-            }
+       else {
+           ble_data_struct_t* data = getBleDataPtr();
+           data->temp_type_status = true;
        }
    }
 
+}
 
+  // Confirmation of indication received from remove GATT client
+   else if (sl_bt_gatt_server_confirmation == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
+
+        ble_data_struct_t* data = getBleDataPtr();
+        data->temp_type_status = false;
+   }
 }
 
 
@@ -167,7 +140,10 @@ void transmit_tempinterval(sl_bt_msg_t *evt,uint16_t attribute){
 
   if (sl_bt_gatt_server_client_config == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
 
-        // -------------------------------// Write our local GATT DB// -------------------------------
+      // Check if notifications and indications are not disabled
+      if(((sl_bt_gatt_client_config_flag_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags) != sl_bt_gatt_disable){
+
+          // -------------------------------// Write our local GATT DB// -------------------------------
         sc = sl_bt_gatt_server_write_attribute_value(attribute,0,sizeof(measurement_interval),(uint8_t *)&measurement_interval);
 
         if (sc != SL_STATUS_OK)
@@ -175,45 +151,26 @@ void transmit_tempinterval(sl_bt_msg_t *evt,uint16_t attribute){
             LOG_ERROR("sl_bt_gatt_server_write_attribute() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
          }
 
+         sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,sizeof(measurement_interval),(uint8_t *)&measurement_interval);
 
-        if(sl_bt_gatt_server_indication == (sl_bt_gatt_server_client_configuration_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags){
-             sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,sizeof(measurement_interval),(uint8_t *)&measurement_interval);
+         if (sc != SL_STATUS_OK)
+         {
+            LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
+         }
 
-             if (sc != SL_STATUS_OK)
-             {
-                LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
-             }
+         else {
+             ble_data_struct_t* data = getBleDataPtr();
+             data->temp_interval_status = true;
+         }
+     }
 
-             else {
-                 ble_data_struct_t* data = getBleDataPtr();
-                 data->temp_interval_status = true;
-             }
-        }
-
-
-
-    }
+ }
 
     // confirmation of indication received from remove GATT client
      else if (sl_bt_gatt_server_confirmation == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
-
-         if(sl_bt_gatt_server_indication == (sl_bt_gatt_server_client_configuration_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags){
-
-             sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,sizeof(measurement_interval),(uint8_t *)&measurement_interval);
-
-              if (sc != SL_STATUS_OK)
-              {
-                 LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
-              }
-
-              else {
-
-                  ble_data_struct_t* data = getBleDataPtr();
-                  data->temp_interval_status = false;
-              }
-
-              }
-         }
+              ble_data_struct_t* data = getBleDataPtr();
+              data->temp_interval_status = false;
+   }
 }
 
 
@@ -231,16 +188,10 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       char string_buffer[50];
 
-      //lcdbtaddr = gecko_cmd_system_get_bt_address();
-
-
+      // Initialize LCD Display
       displayInit();
 
-
       displayPrintf(DISPLAY_ROW_NAME,"SERVER");
-
-      //sprintf(string_buffer,"%d:%d:%d:%d:%d:%d",lcdbtaddr->addr[0],lcdbtaddr->addr[1],lcdbtaddr->addr[2],lcdbtaddr->addr[3],lcdbtaddr->addr[4],lcdbtaddr->addr[5]);
-      //displayPrintf(DISPLAY_ROW_BTADDR,"%s", string_buffer);
 
 
       // Extract unique ID from BT Address.
@@ -250,8 +201,10 @@ void handle_ble_event(sl_bt_msg_t *evt){
           break;
       }
 
-      sprintf(string_buffer,"%d:%d:%d:%d:%d:%d",ble_data.myAddress.addr[0],ble_data.myAddress.addr[1],ble_data.myAddress.addr[2],ble_data.myAddress.addr[3],ble_data.myAddress.addr[4],ble_data.myAddress.addr[5]);
+      sprintf(string_buffer,"%x:%x:%x:%x:%x:%x",ble_data.myAddress.addr[0],ble_data.myAddress.addr[1],ble_data.myAddress.addr[2],ble_data.myAddress.addr[3],ble_data.myAddress.addr[4],ble_data.myAddress.addr[5]);
       displayPrintf(DISPLAY_ROW_BTADDR,"%s", string_buffer);
+
+      displayPrintf(DISPLAY_ROW_ASSIGNMENT,"A6");
 
       //LOG_INFO("\nIdentity Retrieved");
       // Create an advertising set.
@@ -289,7 +242,8 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
     case sl_bt_evt_connection_opened_id:{
 
-      enable_measurement = 1;
+      ble_data_struct_t* data = getBleDataPtr();
+      data->enable_measurement = true;
 
       displayPrintf(DISPLAY_ROW_CONNECTION,"Connected");
 
@@ -326,8 +280,13 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       while( data->temp_measure_status==true || data->temp_type_status == true ||data->temp_interval_status  == true );
 
-      enable_measurement = 0;
+      // Disable temperature measurement by switching off temperarture state machine
+      data->enable_measurement = false;
+
       LOG_INFO("Connection Closed\n\r");
+
+      displayPrintf(DISPLAY_ROW_CONNECTION,"");
+      displayPrintf(DISPLAY_ROW_CONNECTION,"Advertising");
 
       sc = sl_bt_advertiser_start(
                     ble_data.advertisingSetHandle,
