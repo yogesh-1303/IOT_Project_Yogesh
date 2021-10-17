@@ -40,7 +40,6 @@ typedef enum uint32_t{
   STARTCLIENT_State,
   SERVICE_DISCOVERY_State,
   CHARACTERISTIC_DISCOVERY_State,
-  NOTIFICATION_RECEIVED_State,
   CLOSECLIENT_State
 }state_t;
 
@@ -350,7 +349,7 @@ void discovery_state_machine(sl_bt_msg_t *evt){
 
                   displayPrintf(DISPLAY_ROW_CONNECTION,"Handling Indication");
 
-                  next_state = NOTIFICATION_RECEIVED_State;
+                  next_state = CLOSECLIENT_State;
 
 
               }
@@ -358,29 +357,20 @@ void discovery_state_machine(sl_bt_msg_t *evt){
               break;
             }
 
-            case NOTIFICATION_RECEIVED_State:{
-
-              next_state = NOTIFICATION_RECEIVED_State;
-
-              if (evt->data.evt_system_external_signal.extsignals == evtProcedure_Completed){
-
-                  next_state = NOTIFICATION_RECEIVED_State;
 
 
-              }
-
-              else if(evt->data.evt_system_external_signal.extsignals == evtConnection_Closed){
-
-                  next_state = STARTCLIENT_State;
-
-              }
-
-              break;
-            }
 
             case CLOSECLIENT_State:{
 
-             next_state = STARTCLIENT_State;
+
+              next_state = CLOSECLIENT_State;
+
+              if(evt->data.evt_system_external_signal.extsignals == evtConnection_Closed){
+
+                  next_state = STARTCLIENT_State;
+
+                 }
+
 
               break;
             }
