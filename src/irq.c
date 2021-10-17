@@ -6,6 +6,11 @@
 
 #include "irq.h"
 
+// Include logging for this file
+#define INCLUDE_LOG_DEBUG (1)
+
+#include "src/log.h"
+
 #if(LOWEST_ENERGY_MODE==3)
 #define CLOCK_FREQ (1000)
 // Macro definition for Clock Prescaler
@@ -75,6 +80,69 @@ uint32_t letimerMilliseconds(){
   milli_sec = (rollover_count * LETIMER_PERIOD_MS) + (((compare0_value-current_count) *1000)/ACTUAL_CLK_FREQ);
 
   return milli_sec;
+
+}
+
+
+
+
+void I2C0_IRQHandler(void){
+
+  I2C_TransferReturn_TypeDef check_transfer;
+
+  // Continue the initiated I2C transfer
+  check_transfer = I2C_Transfer(I2C0);
+
+  // Check status of transfer
+  if (check_transfer == i2cTransferDone) {
+
+      schedulerSetI2CdoneEvent();
+
+
+  }
+
+  if (check_transfer < 0){
+
+      switch(check_transfer){
+
+         case i2cTransferNack:{
+           LOG_ERROR("NACK Received\n\r");
+           break;
+         }
+
+         case i2cTransferBusErr:{
+           LOG_ERROR("Bus Error\n\r");
+            break;
+          }
+
+         case i2cTransferArbLost:{
+
+           LOG_ERROR("Arbitration lost\n\r");
+             break;
+           }
+
+         case i2cTransferUsageFault:{
+
+           LOG_ERROR("Usage Fault\n\r");
+             break;
+           }
+
+         case i2cTransferSwFault:{
+
+           LOG_ERROR("Sw Fault\n\r");
+           break;
+           }
+
+         default:{
+
+           break;
+         }
+
+       }
+
+
+  }
+
 
 }
 

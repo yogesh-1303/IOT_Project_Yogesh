@@ -11,6 +11,11 @@
 
 #include "src/log.h"
 
+// Health Thermometer service UUID defined by Bluetooth SIG
+static const uint8_t thermo_service[2] = { 0x09, 0x18 };
+// Temperature Measurement characteristic UUID defined by Bluetooth SIG
+static const uint8_t thermo_char[2] = { 0x1c, 0x2a };
+
 // enumeration for various events on interrupt
 typedef enum {
 
@@ -18,6 +23,9 @@ typedef enum {
   evtComp1Event=1,
   evtUFEvent=2,
   evtI2CdoneEvent=3,
+  evtConnection_Opened=4,
+  evtProcedure_Completed=5,
+  evtConnection_Closed=6,
   totalevents
 }event;
 
@@ -28,6 +36,11 @@ typedef enum uint32_t{
   I2Cwrite_State,
   I2Cread_State,
   POWERDOWN_State,
+  STARTCLIENT_State,
+  SERVICE_DISCOVERY_State,
+  CHARACTERISTIC_DISCOVERY_State,
+  NOTIFICATION_RECEIVED_State,
+  CLOSECLIENT_State
 }state_t;
 
 
@@ -76,6 +89,46 @@ void schedulerSetUFEvent(){
 
 }
 
+void schedulerSetConnection_OpenedEvent(){
+
+  CORE_DECLARE_IRQ_STATE;
+
+  CORE_ENTER_CRITICAL();
+
+  sl_bt_external_signal(evtConnection_Opened);
+
+  CORE_EXIT_CRITICAL();
+
+}
+
+
+void schedulerSetProcedure_CompletedEvent(){
+
+  CORE_DECLARE_IRQ_STATE;
+
+  CORE_ENTER_CRITICAL();
+
+  sl_bt_external_signal(evtProcedure_Completed);
+
+  CORE_EXIT_CRITICAL();
+
+}
+
+void schedulerSetConnection_ClosedEvent(){
+
+  CORE_DECLARE_IRQ_STATE;
+
+  CORE_ENTER_CRITICAL();
+
+  sl_bt_external_signal(evtConnection_Closed);
+
+  CORE_EXIT_CRITICAL();
+
+}
+
+
+
+
 void schedulerSetNOEvent(){
 
   CORE_DECLARE_IRQ_STATE;
@@ -91,7 +144,7 @@ void schedulerSetNOEvent(){
 
 
 
-void state_machine(sl_bt_msg_t *evt){
+void Si7021_state_machine(sl_bt_msg_t *evt){
 
   // Enable measurement only if connection is opened and disable measurement when closed
   ble_data_struct_t* data = getBleDataPtr();
@@ -208,4 +261,151 @@ void state_machine(sl_bt_msg_t *evt){
 }
 }
 
+
+void discovery_state_machine(sl_bt_msg_t *evt){
+
+    sl_status_t sc;
+
+    if (SL_BT_MSG_ID(evt->header) == sl_bt_evt_system_external_signal_id){
+
+
+        state_t current_state ;
+        static state_t next_state = STARTCLIENT_State;
+
+        current_state = next_state;
+
+
+         switch(current_state){
+
+            case STARTCLIENT_State:{
+
+                   next_state = STARTCLIENT_State;
+
+                   if (evt->data.evt_system_external_signal.extsignals == evtConnection_Opened){
+
+                       ble_data_struct_t* data = getBleDataPtr();
+
+                       // Discover Health Thermometer service on the responder device
+                       sc = sl_bt_gatt_discover_primary_services_by_uuid(data->new_connection,
+                                                                               sizeof(thermo_service),
+                                                                               thermo_service);
+
+                       if (sc != SL_STATUS_OK) {
+                           LOG_ERROR("Error in discovering health service\n\r");
+                           break;
+                       }
+
+                       next_state = SERVICE_DISCOVERY_State;
+
+                       displayPrintf(DISPLAY_ROW_CONNECTION,"Handling Indication");
+
+                   }
+                   break;
+                  }
+
+
+            case SERVICE_DISCOVERY_State:{
+
+              next_state = SERVICE_DISCOVERY_State;
+
+              if (evt->data.evt_system_external_signal.extsignals == evtProcedure_Completed){
+
+                  ble_data_struct_t* data = getBleDataPtr();
+
+                  sc = sl_bt_gatt_discover_characteristics_by_uuid(data->new_connection,
+                                                                      data->service,
+                                                                      sizeof(thermo_char),
+                                                                     thermo_char);
+                  if (sc != SL_STATUS_OK) {
+
+                     LOG_ERROR("Error in discovering health service\n\r");
+                     break;
+                 }
+
+
+                  next_state = CHARACTERISTIC_DISCOVERY_State;
+
+              }
+
+
+              break;
+            }
+
+
+            case CHARACTERISTIC_DISCOVERY_State:{
+
+              next_state = CHARACTERISTIC_DISCOVERY_State;
+
+              if (evt->data.evt_system_external_signal.extsignals == evtProcedure_Completed){
+
+                  ble_data_struct_t* data = getBleDataPtr();
+
+                  sc = sl_bt_gatt_set_characteristic_notification(data->new_connection,
+                                                                    data->characteristic,
+                                                                    sl_bt_gatt_indication);
+                  if (sc != SL_STATUS_OK) {
+
+                     LOG_ERROR("Error in discovering health service\n\r");
+                     break;
+                 }
+
+
+                  next_state = NOTIFICATION_RECEIVED_State;
+
+
+              }
+
+              break;
+            }
+
+            case NOTIFICATION_RECEIVED_State:{
+
+              next_state = NOTIFICATION_RECEIVED_State;
+
+              if (evt->data.evt_system_external_signal.extsignals == evtProcedure_Completed){
+
+                  next_state = NOTIFICATION_RECEIVED_State;
+
+
+              }
+
+             if(evt->data.evt_system_external_signal.extsignals == evtConnection_Closed){
+
+                  next_state = STARTCLIENT_State;
+
+              }
+
+              break;
+            }
+
+            case CLOSECLIENT_State:{
+
+             next_state = STARTCLIENT_State;
+
+              break;
+            }
+
+
+
+            default: break;
+
+
+        }
+
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+}
 

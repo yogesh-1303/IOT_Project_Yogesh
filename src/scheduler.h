@@ -24,7 +24,14 @@ void schedulerSetCOMP1Event();
 
 void schedulerSetUFEvent();
 
-void state_machine(sl_bt_msg_t *evt);
+void schedulerSetConnection_OpenedEvent();
 
+void schedulerSetProcedure_CompletedEvent();
+
+void schedulerSetConnection_ClosedEvent();
+
+void Si7021_state_machine(sl_bt_msg_t *evt);
+
+void discovery_state_machine(sl_bt_msg_t *evt);
 
 #endif /* SRC_SCHEDULER_H_ */

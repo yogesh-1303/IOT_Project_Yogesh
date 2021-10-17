@@ -12,6 +12,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 #include <sl_bt_api.h>
 #include "em_system.h"
 #include "app.h"
@@ -35,6 +36,7 @@ typedef struct {
   bd_addr myAddress;
   uint8_t myAddressType;
 
+
   // values unique for server
   // The advertising set handle allocated from Bluetooth stack.
   uint8_t advertisingSetHandle;
@@ -44,7 +46,17 @@ typedef struct {
 
   bool enable_measurement;
 
-   // values unique for client
+  // values unique for client
+  bd_addr serverAddress;
+  uint8_t new_connection;
+  bool newconnection_status;
+
+  uint32_t service;
+  uint32_t characteristic;
+
+
+  uint8_t procedure_completion;
+
 
 } ble_data_struct_t;
 

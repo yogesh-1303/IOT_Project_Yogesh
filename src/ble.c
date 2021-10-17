@@ -16,6 +16,18 @@
 
 #define MEASUREMENT_INTERVAL               (2)
 
+#define PASSIVE_SCANNING                   (0)
+
+#define SCANNING_INTERVAL                  (80)
+
+#define SCANNING_WINDOW                    (40)
+
+
+// Health Thermometer service UUID defined by Bluetooth SIG
+static const uint8_t thermo_service[2] = { 0x09, 0x18 };
+// Temperature Measurement characteristic UUID defined by Bluetooth SIG
+static const uint8_t thermo_char[2] = { 0x1c, 0x2a };
+
 
 // BLE private data
 ble_data_struct_t ble_data = {.temp_measure_status=false,.temp_type_status=false,.temp_interval_status=false,.enable_measurement=false};
@@ -26,6 +38,33 @@ ble_data_struct_t* getBleDataPtr(){
   return (&ble_data);
 
 }
+
+// -----------------------------------------------
+// Private function, original from Dan Walkes. I fixed a sign extension bug.
+// We'll need this for Client A7 assignment to convert health thermometer
+// indications back to an integer. Convert IEEE-11073 32-bit float to signed integer.
+// -----------------------------------------------
+static int32_t FLOAT_TO_INT32(const uint8_t *value_start_little_endian)
+{
+    uint8_t signByte = 0;
+    int32_t mantissa;
+    // input data format is:
+    // [0] = flags byte
+    // [3][2][1] = mantissa (2's complement)
+    // [4] = exponent (2's complement)
+    // BT value_start_little_endian[0] has the flags byte
+    int8_t exponent = (int8_t)value_start_little_endian[4];
+    // sign extend the mantissa value if the mantissa is negative
+    if (value_start_little_endian[3] & 0x80) { // msb of [3] is the sign of the mantissa
+    signByte = 0xFF;
+    }
+    mantissa = (int32_t) (value_start_little_endian[1] << 0) |
+    (value_start_little_endian[2] << 8) |
+    (value_start_little_endian[3] << 16) |
+    (signByte << 24) ;
+    // value = 10^exponent * mantissa, pow() returns a double type
+    return (int32_t) (pow(10, exponent) * mantissa);
+} // FLOAT_TO_INT32
 
 void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute){
 
@@ -181,6 +220,8 @@ void transmit_tempinterval(sl_bt_msg_t *evt,uint16_t attribute){
 void handle_ble_event(sl_bt_msg_t *evt){
 
   sl_status_t sc;
+
+#if (DEVICE_IS_BLE_SERVER == 1)
 
   switch(SL_BT_MSG_ID(evt->header)){
 
@@ -373,5 +414,213 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
   }
 
+#endif
+
+#if (DEVICE_IS_BLE_SERVER == 0)
+
+  switch(SL_BT_MSG_ID(evt->header)){
+
+    case sl_bt_evt_system_boot_id:{
+
+      char string_buffer[50];
+
+
+      // Initialize LCD Display
+      displayInit();
+
+      displayPrintf(DISPLAY_ROW_NAME,"CLIENT");
+
+
+      // Extract unique ID from BT Address.
+      sc = sl_bt_system_get_identity_address(&ble_data.myAddress, &ble_data.myAddressType);
+      if (sc != SL_STATUS_OK) {
+          LOG_ERROR("Error in getting identity\n\r");
+          break;
+      }
+
+      sprintf(string_buffer,"%x:%x:%x:%x:%x:%x",ble_data.myAddress.addr[0],ble_data.myAddress.addr[1],ble_data.myAddress.addr[2],ble_data.myAddress.addr[3],ble_data.myAddress.addr[4],ble_data.myAddress.addr[5]);
+      displayPrintf(DISPLAY_ROW_BTADDR,"%s", string_buffer);
+
+      displayPrintf(DISPLAY_ROW_ASSIGNMENT,"A7");
+
+      // Configure for passive scanning
+      sc = sl_bt_scanner_set_mode(sl_bt_gap_1m_phy, PASSIVE_SCANNING);
+      if (sc != SL_STATUS_OK) {
+          LOG_ERROR("Error in setting scanning mode\n\r");
+          break;
+      }
+
+      sc = sl_bt_scanner_set_timing(sl_bt_gap_1m_phy,SCANNING_INTERVAL, SCANNING_WINDOW);
+      if (sc != SL_STATUS_OK) {
+          LOG_ERROR("Error in setting scanning timing\n\r");
+          break;
+      }
+
+
+      sc = sl_bt_connection_set_default_parameters(60,60,4,300,0,0xffff);
+      if (sc != SL_STATUS_OK) {
+          LOG_ERROR("Error in setting parameters\n\r");
+          break;
+      }
+
+      sc = sl_bt_scanner_start(sl_bt_gap_1m_phy,sl_bt_scanner_discover_observation);
+      if (sc != SL_STATUS_OK) {
+          LOG_ERROR("Error in starting scanning\n\r");
+          break;
+      }
+
+      //DISPLAY_ROW_CONNECTION
+      displayPrintf(DISPLAY_ROW_CONNECTION,"Discovering");
+
+
+
+
+      break;
+    }
+
+
+    case sl_bt_evt_scanner_scan_report_id:{
+
+      char server_string[50];
+
+      bd_addr server_addr = SERVER_BT_ADDRESS;
+      ble_data.serverAddress = server_addr;
+
+      uint8_t compare_check = 0;
+      for(int i=0;i<6;i++){
+
+          if (ble_data.serverAddress.addr[i] == evt->data.evt_scanner_scan_report.address.addr[i]){
+              compare_check++;
+          }
+
+      }
+
+      if (compare_check == 6){
+
+          sc =  sl_bt_scanner_stop();
+
+          if (sc != SL_STATUS_OK) {
+              LOG_ERROR("Error in stopping scanner\n\r");
+              break;
+          }
+
+
+
+          sprintf(server_string,"%x:%x:%x:%x:%x:%x",ble_data.serverAddress.addr[0],ble_data.serverAddress.addr[1],ble_data.serverAddress.addr[2],ble_data.serverAddress.addr[3],ble_data.serverAddress.addr[4],ble_data.serverAddress.addr[5]);
+          displayPrintf(DISPLAY_ROW_BTADDR2,"%s", server_string);
+
+          // address
+          sc = sl_bt_connection_open(evt->data.evt_scanner_scan_report.address,
+                                                evt->data.evt_scanner_scan_report.address_type,
+                                                sl_bt_gap_1m_phy,
+                                                NULL);
+
+          if (sc != SL_STATUS_OK) {
+              LOG_ERROR("Error in opening connection\n\r");
+              break;
+          }
+
+      }
+      //else break;
+
+
+      break;
+    }
+
+
+    case  sl_bt_evt_connection_opened_id:{
+
+      //DISPLAY_ROW_CONNECTION
+      displayPrintf(DISPLAY_ROW_CONNECTION,"Connected");
+
+      ble_data.new_connection = evt->data.evt_connection_opened.connection;
+      ble_data.newconnection_status =  true;
+
+      // Set event
+      schedulerSetConnection_OpenedEvent();
+
+      break;
+    }
+
+    case  sl_bt_evt_gatt_service_id:{
+      if(evt->data.evt_gatt_service.uuid.data[0] ==  thermo_service[0] && evt->data.evt_gatt_service.uuid.data[1] ==  thermo_service[1]  ){
+      ble_data.service = evt->data.evt_gatt_service.service;
+      }
+
+
+      break;
+    }
+
+
+    case  sl_bt_evt_gatt_characteristic_id:{
+
+      if(evt->data.evt_gatt_characteristic.uuid.data[0] ==  thermo_char[0] && evt->data.evt_gatt_characteristic.uuid.data[1] ==  thermo_char[1]  ){
+      ble_data.characteristic = evt->data.evt_gatt_characteristic.characteristic;
+      }
+
+      break;
+    }
+
+
+    case sl_bt_evt_gatt_procedure_completed_id:{
+
+      ble_data.procedure_completion = evt->data.evt_gatt_procedure_completed.connection;
+
+      // Set Event
+      schedulerSetProcedure_CompletedEvent();
+
+      break;
+    }
+
+
+    case sl_bt_evt_gatt_characteristic_value_id:{
+
+      uint8_t* data = &(evt->data.evt_gatt_characteristic_value.value.data[0]);
+
+      int32_t temperature = FLOAT_TO_INT32(data);
+      LOG_INFO("TEMP====%d",temperature);
+      //Display Temperature on LCD
+      displayPrintf(DISPLAY_ROW_TEMPVALUE,"Temp=%d",temperature);
+
+      sc = sl_bt_gatt_send_characteristic_confirmation(evt->data.evt_gatt_characteristic_value.connection);
+      if (sc != SL_STATUS_OK) {
+          LOG_ERROR("Error in sending confirmation\n\r");
+          break;
+      }
+
+
+
+      break;
+    }
+
+    case sl_bt_evt_connection_closed_id:{
+
+      // Set event
+      schedulerSetConnection_ClosedEvent();
+
+
+      displayPrintf(DISPLAY_ROW_CONNECTION,"");
+      displayPrintf(DISPLAY_ROW_TEMPVALUE,"");
+      displayPrintf(DISPLAY_ROW_CONNECTION,"Discovering");
+
+
+      sc = sl_bt_scanner_start(sl_bt_gap_1m_phy,sl_bt_scanner_discover_generic);
+      if (sc != SL_STATUS_OK) {
+         LOG_ERROR("Error in starting scanning\n\r");
+         break;
+      }
+
+      break;
+    }
+
+
+
+
+  }
+
+
+
+
+#endif
 
 }
