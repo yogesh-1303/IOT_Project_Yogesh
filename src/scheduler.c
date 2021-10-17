@@ -11,6 +11,7 @@
 
 #include "src/log.h"
 
+
 // Health Thermometer service UUID defined by Bluetooth SIG
 static const uint8_t thermo_service[2] = { 0x09, 0x18 };
 // Temperature Measurement characteristic UUID defined by Bluetooth SIG
@@ -151,114 +152,112 @@ void Si7021_state_machine(sl_bt_msg_t *evt){
 
   if (data->enable_measurement == true){
 
-  if (SL_BT_MSG_ID(evt->header) == sl_bt_evt_system_external_signal_id){
+      if (SL_BT_MSG_ID(evt->header) == sl_bt_evt_system_external_signal_id){
 
-     state_t current_state ;
-     static state_t next_state = IDLE_State;
+         state_t current_state ;
+         static state_t next_state = IDLE_State;
 
-     current_state = next_state;
+         current_state = next_state;
 
 
-      switch(current_state){
+         switch(current_state){
 
-        case IDLE_State:{
-             next_state = IDLE_State;
+            case IDLE_State:{
 
-             if (evt->data.evt_system_external_signal.extsignals == evtUFEvent){
+              next_state = IDLE_State;
 
-                 //LOG_INFO("POWER ON SENSOR @\r");
+              if (evt->data.evt_system_external_signal.extsignals == evtUFEvent){
 
-                // Enable Si7021 by setting its enable signal high
-                Enable_si7021(true);
+                   //LOG_INFO("POWER ON SENSOR @\r");
 
-                // Wait for Power up time
-                timerWaitUs_irq(80000);
+                  // Enable Si7021 by setting its enable signal high
+                  Enable_si7021(true);
 
-                next_state = POWERON_State;
+                  // Wait for Power up time
+                  timerWaitUs_irq(80000);
 
-             }
-             break;
-            }
-
-            case POWERON_State:{
-
-             next_state = POWERON_State;
-
-             if (evt->data.evt_system_external_signal.extsignals == evtComp1Event){
-
-                 I2C_Write_Si7021();
-                 next_state = I2Cwrite_State;
-
-                 sl_power_manager_add_em_requirement(EM1);
-
-             }
-             break;
-            }
-
-            case I2Cwrite_State:{
-
-             next_state = I2Cwrite_State;
-
-             if (evt->data.evt_system_external_signal.extsignals == evtI2CdoneEvent){
-
-                 NVIC_DisableIRQ(I2C0_IRQn);
-
-                 sl_power_manager_remove_em_requirement(EM1);
-
-                 timerWaitUs_irq(10800);
-                 next_state = I2Cread_State;
-
-             }
-             break;
-            }
-
-            case I2Cread_State:{
-
-               next_state = I2Cread_State;
-
-               if (evt->data.evt_system_external_signal.extsignals == evtComp1Event){
-
-                   I2C_Read_Si7021();
-
-                   next_state = POWERDOWN_State;
-
-                   sl_power_manager_add_em_requirement(EM1);
-
+                  next_state = POWERON_State;
 
                }
                break;
               }
 
-            case POWERDOWN_State:{
+            case POWERON_State:{
 
-              next_state = POWERDOWN_State;
+               next_state = POWERON_State;
 
-              if (evt->data.evt_system_external_signal.extsignals == evtI2CdoneEvent){
+               if (evt->data.evt_system_external_signal.extsignals == evtComp1Event){
 
-               NVIC_DisableIRQ(I2C0_IRQn);
+                   I2C_Write_Si7021();
+                   next_state = I2Cwrite_State;
 
-               sl_power_manager_remove_em_requirement(EM1);
+                   sl_power_manager_add_em_requirement(EM1);
 
-               //Enable_si7021(false);
-
-               process_temp_si7021();
-
-               next_state = IDLE_State;
-
-              }
-
+               }
                break;
               }
 
+            case I2Cwrite_State:{
 
-            default: break;
+               next_state = I2Cwrite_State;
+
+               if (evt->data.evt_system_external_signal.extsignals == evtI2CdoneEvent){
+
+                   NVIC_DisableIRQ(I2C0_IRQn);
+
+                   sl_power_manager_remove_em_requirement(EM1);
+
+                   timerWaitUs_irq(10800);
+                   next_state = I2Cread_State;
+
+               }
+               break;
+              }
+
+            case I2Cread_State:{
+
+                 next_state = I2Cread_State;
+
+                 if (evt->data.evt_system_external_signal.extsignals == evtComp1Event){
+
+                     I2C_Read_Si7021();
+
+                     next_state = POWERDOWN_State;
+
+                     sl_power_manager_add_em_requirement(EM1);
 
 
-   }
+                 }
+                 break;
+                }
 
+            case POWERDOWN_State:{
+
+                next_state = POWERDOWN_State;
+
+                if (evt->data.evt_system_external_signal.extsignals == evtI2CdoneEvent){
+
+                 NVIC_DisableIRQ(I2C0_IRQn);
+
+                 sl_power_manager_remove_em_requirement(EM1);
+
+                 //Enable_si7021(false);
+
+                 process_temp_si7021();
+
+                 next_state = IDLE_State;
+
+                }
+
+                 break;
+                }
+
+
+              default: break;
+         }
+      }
   }
 
-}
 }
 
 
@@ -279,29 +278,28 @@ void discovery_state_machine(sl_bt_msg_t *evt){
 
             case STARTCLIENT_State:{
 
-                   next_state = STARTCLIENT_State;
+              next_state = STARTCLIENT_State;
 
-                   if (evt->data.evt_system_external_signal.extsignals == evtConnection_Opened){
+               if (evt->data.evt_system_external_signal.extsignals == evtConnection_Opened){
 
-                       ble_data_struct_t* data = getBleDataPtr();
+                   ble_data_struct_t* data = getBleDataPtr();
 
-                       // Discover Health Thermometer service on the responder device
-                       sc = sl_bt_gatt_discover_primary_services_by_uuid(data->new_connection,
-                                                                               sizeof(thermo_service),
-                                                                               thermo_service);
+                   // Discover Health Thermometer service on the responder device
+                   sc = sl_bt_gatt_discover_primary_services_by_uuid(data->new_connection,
+                                                                           sizeof(thermo_service),
+                                                                           thermo_service);
 
-                       if (sc != SL_STATUS_OK) {
-                           LOG_ERROR("Error in discovering health service\n\r");
-                           break;
-                       }
-
-                       next_state = SERVICE_DISCOVERY_State;
-
-                       displayPrintf(DISPLAY_ROW_CONNECTION,"Handling Indication");
-
+                   if (sc != SL_STATUS_OK) {
+                       LOG_ERROR("Error in discovering health service\n\r");
+                       break;
                    }
-                   break;
-                  }
+
+                   next_state = SERVICE_DISCOVERY_State;
+
+
+               }
+               break;
+              }
 
 
             case SERVICE_DISCOVERY_State:{
@@ -350,6 +348,8 @@ void discovery_state_machine(sl_bt_msg_t *evt){
                  }
 
 
+                  displayPrintf(DISPLAY_ROW_CONNECTION,"Handling Indication");
+
                   next_state = NOTIFICATION_RECEIVED_State;
 
 
@@ -369,7 +369,7 @@ void discovery_state_machine(sl_bt_msg_t *evt){
 
               }
 
-             if(evt->data.evt_system_external_signal.extsignals == evtConnection_Closed){
+              else if(evt->data.evt_system_external_signal.extsignals == evtConnection_Closed){
 
                   next_state = STARTCLIENT_State;
 
@@ -385,27 +385,12 @@ void discovery_state_machine(sl_bt_msg_t *evt){
               break;
             }
 
-
-
             default: break;
 
 
         }
 
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
 
 }
 

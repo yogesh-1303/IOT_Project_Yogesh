@@ -22,12 +22,12 @@
 
 #define SCANNING_WINDOW                    (40)
 
-
+#if (DEVICE_IS_BLE_SERVER == 0)
 // Health Thermometer service UUID defined by Bluetooth SIG
 static const uint8_t thermo_service[2] = { 0x09, 0x18 };
 // Temperature Measurement characteristic UUID defined by Bluetooth SIG
 static const uint8_t thermo_char[2] = { 0x1c, 0x2a };
-
+#endif
 
 // BLE private data
 ble_data_struct_t ble_data = {.temp_measure_status=false,.temp_type_status=false,.temp_interval_status=false,.enable_measurement=false};
@@ -39,6 +39,7 @@ ble_data_struct_t* getBleDataPtr(){
 
 }
 
+#if (DEVICE_IS_BLE_SERVER == 0)
 // -----------------------------------------------
 // Private function, original from Dan Walkes. I fixed a sign extension bug.
 // We'll need this for Client A7 assignment to convert health thermometer
@@ -65,6 +66,8 @@ static int32_t FLOAT_TO_INT32(const uint8_t *value_start_little_endian)
     // value = 10^exponent * mantissa, pow() returns a double type
     return (int32_t) (pow(10, exponent) * mantissa);
 } // FLOAT_TO_INT32
+#endif
+
 
 void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute){
 
@@ -221,11 +224,11 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
   sl_status_t sc;
 
-#if (DEVICE_IS_BLE_SERVER == 1)
-
   switch(SL_BT_MSG_ID(evt->header)){
 
     case sl_bt_evt_system_boot_id:{
+
+#if (DEVICE_IS_BLE_SERVER == 1)
 
       char string_buffer[50];
 
@@ -245,7 +248,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
       sprintf(string_buffer,"%x:%x:%x:%x:%x:%x",ble_data.myAddress.addr[0],ble_data.myAddress.addr[1],ble_data.myAddress.addr[2],ble_data.myAddress.addr[3],ble_data.myAddress.addr[4],ble_data.myAddress.addr[5]);
       displayPrintf(DISPLAY_ROW_BTADDR,"%s", string_buffer);
 
-      displayPrintf(DISPLAY_ROW_ASSIGNMENT,"A6");
+      displayPrintf(DISPLAY_ROW_ASSIGNMENT,"A7");
 
       //LOG_INFO("\nIdentity Retrieved");
       // Create an advertising set.
@@ -278,10 +281,67 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
        //DISPLAY_ROW_CONNECTION
        displayPrintf(DISPLAY_ROW_CONNECTION,"Advertising");
+#endif
+
+#if (DEVICE_IS_BLE_SERVER == 0)
+
+       char string_buffer[50];
+
+
+       // Initialize LCD Display
+       displayInit();
+
+       displayPrintf(DISPLAY_ROW_NAME,"CLIENT");
+
+
+       // Extract unique ID from BT Address.
+       sc = sl_bt_system_get_identity_address(&ble_data.myAddress, &ble_data.myAddressType);
+       if (sc != SL_STATUS_OK) {
+           LOG_ERROR("Error in getting identity\n\r");
+           break;
+       }
+
+       sprintf(string_buffer,"%x:%x:%x:%x:%x:%x",ble_data.myAddress.addr[0],ble_data.myAddress.addr[1],ble_data.myAddress.addr[2],ble_data.myAddress.addr[3],ble_data.myAddress.addr[4],ble_data.myAddress.addr[5]);
+       displayPrintf(DISPLAY_ROW_BTADDR,"%s", string_buffer);
+
+       displayPrintf(DISPLAY_ROW_ASSIGNMENT,"A7");
+
+       // Configure for passive scanning
+       sc = sl_bt_scanner_set_mode(sl_bt_gap_1m_phy, PASSIVE_SCANNING);
+       if (sc != SL_STATUS_OK) {
+           LOG_ERROR("Error in setting scanning mode\n\r");
+           break;
+       }
+
+       sc = sl_bt_scanner_set_timing(sl_bt_gap_1m_phy,SCANNING_INTERVAL, SCANNING_WINDOW);
+       if (sc != SL_STATUS_OK) {
+           LOG_ERROR("Error in setting scanning timing\n\r");
+           break;
+       }
+
+
+       sc = sl_bt_connection_set_default_parameters(60,60,4,300,0,0xffff);
+       if (sc != SL_STATUS_OK) {
+           LOG_ERROR("Error in setting parameters\n\r");
+           break;
+       }
+
+       sc = sl_bt_scanner_start(sl_bt_gap_1m_phy,sl_bt_scanner_discover_observation);
+       if (sc != SL_STATUS_OK) {
+           LOG_ERROR("Error in starting scanning\n\r");
+           break;
+       }
+
+       //DISPLAY_ROW_CONNECTION
+       displayPrintf(DISPLAY_ROW_CONNECTION,"Discovering");
+
+#endif
       break;
     }
 
     case sl_bt_evt_connection_opened_id:{
+
+#if (DEVICE_IS_BLE_SERVER == 1)
 
       ble_data_struct_t* data = getBleDataPtr();
       data->enable_measurement = true;
@@ -309,11 +369,27 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
           //LOG_ERROR("Error in setting connection parameters\n\r");
       }
+#endif
+
+#if (DEVICE_IS_BLE_SERVER == 0)
+
+      //DISPLAY_ROW_CONNECTION
+      displayPrintf(DISPLAY_ROW_CONNECTION,"Connected");
+
+      ble_data.new_connection = evt->data.evt_connection_opened.connection;
+      ble_data.newconnection_status =  true;
+
+      // Set event
+      schedulerSetConnection_OpenedEvent();
+
+#endif
       break;
     }
 
 
     case sl_bt_evt_connection_closed_id:{
+
+#if (DEVICE_IS_BLE_SERVER == 1)
 
       ble_data_struct_t* data = getBleDataPtr();
 
@@ -327,6 +403,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
       LOG_INFO("Connection Closed\n\r");
 
       displayPrintf(DISPLAY_ROW_CONNECTION,"");
+      displayPrintf(DISPLAY_ROW_TEMPVALUE,"");
       displayPrintf(DISPLAY_ROW_CONNECTION,"Advertising");
 
       sc = sl_bt_advertiser_start(
@@ -338,11 +415,34 @@ void handle_ble_event(sl_bt_msg_t *evt){
                  break;
              }
 
+#endif
+
+#if (DEVICE_IS_BLE_SERVER == 0)
+
+     // Set event
+     schedulerSetConnection_ClosedEvent();
+
+
+     displayPrintf(DISPLAY_ROW_CONNECTION,"");
+     displayPrintf(DISPLAY_ROW_TEMPVALUE,"");
+     displayPrintf(DISPLAY_ROW_BTADDR2,"");
+     displayPrintf(DISPLAY_ROW_CONNECTION,"Discovering");
+
+
+     sc = sl_bt_scanner_start(sl_bt_gap_1m_phy,sl_bt_scanner_discover_generic);
+     if (sc != SL_STATUS_OK) {
+        LOG_ERROR("Error in starting scanning\n\r");
+        break;
+     }
+
+
+
+#endif
 
       break;
     }
 
-
+#if (DEVICE_IS_BLE_SERVER == 1)
     case  sl_bt_evt_connection_parameters_id:{
 
 
@@ -411,73 +511,10 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
     }
 
-
-  }
-
 #endif
 
+//
 #if (DEVICE_IS_BLE_SERVER == 0)
-
-  switch(SL_BT_MSG_ID(evt->header)){
-
-    case sl_bt_evt_system_boot_id:{
-
-      char string_buffer[50];
-
-
-      // Initialize LCD Display
-      displayInit();
-
-      displayPrintf(DISPLAY_ROW_NAME,"CLIENT");
-
-
-      // Extract unique ID from BT Address.
-      sc = sl_bt_system_get_identity_address(&ble_data.myAddress, &ble_data.myAddressType);
-      if (sc != SL_STATUS_OK) {
-          LOG_ERROR("Error in getting identity\n\r");
-          break;
-      }
-
-      sprintf(string_buffer,"%x:%x:%x:%x:%x:%x",ble_data.myAddress.addr[0],ble_data.myAddress.addr[1],ble_data.myAddress.addr[2],ble_data.myAddress.addr[3],ble_data.myAddress.addr[4],ble_data.myAddress.addr[5]);
-      displayPrintf(DISPLAY_ROW_BTADDR,"%s", string_buffer);
-
-      displayPrintf(DISPLAY_ROW_ASSIGNMENT,"A7");
-
-      // Configure for passive scanning
-      sc = sl_bt_scanner_set_mode(sl_bt_gap_1m_phy, PASSIVE_SCANNING);
-      if (sc != SL_STATUS_OK) {
-          LOG_ERROR("Error in setting scanning mode\n\r");
-          break;
-      }
-
-      sc = sl_bt_scanner_set_timing(sl_bt_gap_1m_phy,SCANNING_INTERVAL, SCANNING_WINDOW);
-      if (sc != SL_STATUS_OK) {
-          LOG_ERROR("Error in setting scanning timing\n\r");
-          break;
-      }
-
-
-      sc = sl_bt_connection_set_default_parameters(60,60,4,300,0,0xffff);
-      if (sc != SL_STATUS_OK) {
-          LOG_ERROR("Error in setting parameters\n\r");
-          break;
-      }
-
-      sc = sl_bt_scanner_start(sl_bt_gap_1m_phy,sl_bt_scanner_discover_observation);
-      if (sc != SL_STATUS_OK) {
-          LOG_ERROR("Error in starting scanning\n\r");
-          break;
-      }
-
-      //DISPLAY_ROW_CONNECTION
-      displayPrintf(DISPLAY_ROW_CONNECTION,"Discovering");
-
-
-
-
-      break;
-    }
-
 
     case sl_bt_evt_scanner_scan_report_id:{
 
@@ -490,7 +527,9 @@ void handle_ble_event(sl_bt_msg_t *evt){
       for(int i=0;i<6;i++){
 
           if (ble_data.serverAddress.addr[i] == evt->data.evt_scanner_scan_report.address.addr[i]){
+
               compare_check++;
+
           }
 
       }
@@ -521,30 +560,16 @@ void handle_ble_event(sl_bt_msg_t *evt){
           }
 
       }
-      //else break;
-
-
-      break;
-    }
-
-
-    case  sl_bt_evt_connection_opened_id:{
-
-      //DISPLAY_ROW_CONNECTION
-      displayPrintf(DISPLAY_ROW_CONNECTION,"Connected");
-
-      ble_data.new_connection = evt->data.evt_connection_opened.connection;
-      ble_data.newconnection_status =  true;
-
-      // Set event
-      schedulerSetConnection_OpenedEvent();
 
       break;
     }
 
     case  sl_bt_evt_gatt_service_id:{
+
       if(evt->data.evt_gatt_service.uuid.data[0] ==  thermo_service[0] && evt->data.evt_gatt_service.uuid.data[1] ==  thermo_service[1]  ){
-      ble_data.service = evt->data.evt_gatt_service.service;
+
+         ble_data.service = evt->data.evt_gatt_service.service;
+
       }
 
 
@@ -555,7 +580,9 @@ void handle_ble_event(sl_bt_msg_t *evt){
     case  sl_bt_evt_gatt_characteristic_id:{
 
       if(evt->data.evt_gatt_characteristic.uuid.data[0] ==  thermo_char[0] && evt->data.evt_gatt_characteristic.uuid.data[1] ==  thermo_char[1]  ){
-      ble_data.characteristic = evt->data.evt_gatt_characteristic.characteristic;
+
+          ble_data.characteristic = evt->data.evt_gatt_characteristic.characteristic;
+
       }
 
       break;
@@ -592,35 +619,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       break;
     }
-
-    case sl_bt_evt_connection_closed_id:{
-
-      // Set event
-      schedulerSetConnection_ClosedEvent();
-
-
-      displayPrintf(DISPLAY_ROW_CONNECTION,"");
-      displayPrintf(DISPLAY_ROW_TEMPVALUE,"");
-      displayPrintf(DISPLAY_ROW_CONNECTION,"Discovering");
-
-
-      sc = sl_bt_scanner_start(sl_bt_gap_1m_phy,sl_bt_scanner_discover_generic);
-      if (sc != SL_STATUS_OK) {
-         LOG_ERROR("Error in starting scanning\n\r");
-         break;
-      }
-
-      break;
-    }
-
-
-
-
-  }
-
-
-
-
 #endif
+  }
 
 }

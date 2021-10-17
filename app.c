@@ -168,7 +168,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
 
 #if DEVICE_IS_BLE_SERVER
   // sequence through states driven by events
-  Si7021_state_machin(evt);    // put this code in scheduler.c/.h
+  Si7021_state_machine(evt);    // put this code in scheduler.c/.h
   
 #else
   
