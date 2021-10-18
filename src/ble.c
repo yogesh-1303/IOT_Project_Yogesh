@@ -283,6 +283,8 @@ void handle_ble_event(sl_bt_msg_t *evt){
        displayPrintf(DISPLAY_ROW_CONNECTION,"Advertising");
 #endif
 
+      // CLient Implememntation
+
 #if (DEVICE_IS_BLE_SERVER == 0)
 
        char string_buffer[50];
@@ -348,7 +350,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       displayPrintf(DISPLAY_ROW_CONNECTION,"Connected");
 
-      LOG_INFO("Connection Open\n\r");
+      //LOG_INFO("Connection Open\n\r");
 
 
       sc =  sl_bt_advertiser_stop(ble_data.advertisingSetHandle);
@@ -400,7 +402,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
       // Disable temperature measurement by switching off temperarture state machine
       data->enable_measurement = false;
 
-      LOG_INFO("Connection Closed\n\r");
+      //LOG_INFO("Connection Closed\n\r");
 
       displayPrintf(DISPLAY_ROW_CONNECTION,"");
       displayPrintf(DISPLAY_ROW_TEMPVALUE,"");
@@ -445,14 +447,14 @@ void handle_ble_event(sl_bt_msg_t *evt){
 #if (DEVICE_IS_BLE_SERVER == 1)
     case  sl_bt_evt_connection_parameters_id:{
 
-
+      /*
       LOG_INFO("Connection params: connection=%d, interval=%d, latency=%d, timeout=%d, securitymode=%d",
                (int) (evt->data.evt_connection_parameters.connection),
                (int) (evt->data.evt_connection_parameters.interval*1.25),
                (int) (evt->data.evt_connection_parameters.latency),
                (int) (evt->data.evt_connection_parameters.timeout*10),
                (int) (evt->data.evt_connection_parameters.security_mode) );
-
+       */
 
       break;
     }

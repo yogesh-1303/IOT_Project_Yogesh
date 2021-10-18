@@ -229,7 +229,7 @@ void process_temp_si7021(void){
   read_data=celsius;
 
   // LOG the temperature
-  LOG_INFO("Current Temperature : %d\n\r",(int32_t)read_data);
+  //LOG_INFO("Current Temperature : %d\n\r",(int32_t)read_data);
 
 
 }
