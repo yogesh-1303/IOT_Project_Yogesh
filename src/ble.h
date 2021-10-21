@@ -38,6 +38,7 @@ typedef struct {
 
 
   // values unique for server
+  uint8_t bond_connection;
   // The advertising set handle allocated from Bluetooth stack.
   uint8_t advertisingSetHandle;
   bool temp_measure_status;

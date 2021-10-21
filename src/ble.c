@@ -270,6 +270,35 @@ void handle_ble_event(sl_bt_msg_t *evt){
            break;
        }
 
+       /*Security Manager*/
+
+       sc = sl_bt_sm_configure(15,sl_bt_sm_io_capability_displayyesno);
+       if (sc != SL_STATUS_OK) {
+           LOG_ERROR("Error in configuring security manager\n\r");
+           break;
+       }
+
+       sc = sl_bt_sm_set_passkey(456686);
+       if (sc != SL_STATUS_OK) {
+           LOG_ERROR("Error in settting passkey\n\r");
+           break;
+       }
+
+       sc = sl_bt_sm_set_bondable_mode(1);
+       if (sc != SL_STATUS_OK) {
+           LOG_ERROR("Error in settting bondable mode\n\r");
+           break;
+       }
+
+       sc = sl_bt_sm_delete_bondings();
+       if (sc != SL_STATUS_OK) {
+           LOG_ERROR("Error in deleting bonds\n\r");
+           break;
+       }
+
+
+
+
        sc = sl_bt_advertiser_start(
               ble_data.advertisingSetHandle,
               sl_bt_advertiser_general_discoverable,
@@ -281,6 +310,9 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
        //DISPLAY_ROW_CONNECTION
        displayPrintf(DISPLAY_ROW_CONNECTION,"Advertising");
+
+
+
 #endif
 
       // CLient Implememntation
@@ -352,7 +384,6 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       //LOG_INFO("Connection Open\n\r");
 
-
       sc =  sl_bt_advertiser_stop(ble_data.advertisingSetHandle);
       if (sc != SL_STATUS_OK) {
           LOG_ERROR("Error in stopping advertising\n\r");
@@ -416,6 +447,12 @@ void handle_ble_event(sl_bt_msg_t *evt){
                  LOG_ERROR("Error in starting advertising\n\r");
                  break;
              }
+
+      sc = sl_bt_sm_delete_bondings();
+              if (sc != SL_STATUS_OK) {
+                  LOG_ERROR("Error in deleting bonds\n\r");
+                  break;
+              }
 
 #endif
 
@@ -511,6 +548,52 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       break;
 
+    }
+
+    case sl_bt_evt_sm_confirm_bonding_id:{
+
+      sc = sl_bt_sm_bonding_confirm(evt->data.evt_sm_confirm_bonding.connection,0x01);
+
+      if (sc != SL_STATUS_OK) {
+         LOG_ERROR("Error in confirming bonding\n\r");
+         break;
+      }
+
+      ble_data.bond_connection = evt->data.evt_sm_confirm_bonding.connection;
+
+      break;
+    }
+
+    case sl_bt_evt_sm_confirm_passkey_id:{
+
+      displayPrintf(DISPLAY_ROW_PASSKEY,"Passkey %d",evt->data.evt_sm_confirm_passkey.passkey);
+
+
+      break;
+    }
+
+    case sl_bt_evt_system_external_signal_id:{
+
+      if( evt->data.evt_system_external_signal.extsignals == evtPushbuttonEvent){
+
+          sc = sm_passkey_confirm(ble_data.bond_connection,1);
+          if (sc != SL_STATUS_OK) {
+             LOG_ERROR("Error in confirming passkey\n\r");
+             break;
+          }
+
+      }
+
+
+      break;
+    }
+
+    case sl_bt_evt_sm_bonded_id:{
+
+
+
+
+      break;
     }
 
 #endif

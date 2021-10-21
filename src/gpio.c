@@ -37,7 +37,15 @@ void gpioInit()
   GPIO_PinModeSet(gpioPortD, 15, gpioModePushPull, false);
 
   // Enable Pin of Si7021 Sensor
-   GPIO_PinModeSet(EXTCOMIN_port, EXTCOMIN_pin, gpioModePushPull, false);
+  GPIO_PinModeSet(EXTCOMIN_port, EXTCOMIN_pin, gpioModePushPull, false);
+
+  // Set PB0 as input
+  GPIO_PinModeSet(PUSHBUTTON_port,PUSHBUTTON_pin,gpioModeInputPull, 1);
+  GPIO_ExtIntConfig(PUSHBUTTON_port, PUSHBUTTON_pin,PUSHBUTTON_pin, true, false, true);
+
+  // Enable GPIO interrupts
+  NVIC_ClearPendingIRQ(GPIO_EVEN_IRQn);
+  NVIC_EnableIRQ(GPIO_EVEN_IRQn);
 
 
 

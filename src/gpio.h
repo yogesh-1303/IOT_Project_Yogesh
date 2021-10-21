@@ -29,8 +29,8 @@
 #define EXTCOMIN_port gpioPortD
 #define EXTCOMIN_pin 13u
 
-
-
+#define PUSHBUTTON_port  gpioPortF
+#define PUSHBUTTON_pin   6u
 
 
 

@@ -147,5 +147,24 @@ void I2C0_IRQHandler(void){
 }
 
 
+void GPIO_EVEN_IRQHandler(void){
+
+  uint32_t flags = GPIO_IntGetEnabled();
+
+  GPIO_IntClear(flags);
+
+
+  if (flags == (1<<6)){
+
+      LOG_INFO("Button Pressed\r");
+
+
+  }
+
+
+
+}
+
+
 
 

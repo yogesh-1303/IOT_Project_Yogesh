@@ -17,31 +17,6 @@ static const uint8_t thermo_service[2] = { 0x09, 0x18 };
 // Temperature Measurement characteristic UUID defined by Bluetooth SIG
 static const uint8_t thermo_char[2] = { 0x1c, 0x2a };
 
-// enumeration for various events on interrupt
-typedef enum {
-
-  evtNOEvent=0,
-  evtComp1Event=1,
-  evtUFEvent=2,
-  evtI2CdoneEvent=3,
-  evtConnection_Opened=4,
-  evtProcedure_Completed=5,
-  evtConnection_Closed=6,
-  totalevents
-}event;
-
-// enumeration for various states of Si7021 Temperature Reading
-typedef enum uint32_t{
-  IDLE_State,
-  POWERON_State,
-  I2Cwrite_State,
-  I2Cread_State,
-  POWERDOWN_State,
-  STARTCLIENT_State,
-  SERVICE_DISCOVERY_State,
-  CHARACTERISTIC_DISCOVERY_State,
-  CLOSECLIENT_State
-}state_t;
 
 
 // global variable for checking triggered event
@@ -141,6 +116,17 @@ void schedulerSetNOEvent(){
 
 }
 
+void schedulerSetPushbuttonEvent(){
+
+  CORE_DECLARE_IRQ_STATE;
+
+  CORE_ENTER_CRITICAL();
+
+  sl_bt_external_signal(evtPushbuttonEvent);
+
+  CORE_EXIT_CRITICAL();
+
+}
 
 
 
