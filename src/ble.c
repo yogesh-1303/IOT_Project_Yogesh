@@ -272,23 +272,6 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
        /*Security Manager*/
 
-       sc = sl_bt_sm_configure(15,sl_bt_sm_io_capability_displayyesno);
-       if (sc != SL_STATUS_OK) {
-           LOG_ERROR("Error in configuring security manager\n\r");
-           break;
-       }
-
-       sc = sl_bt_sm_set_passkey(456686);
-       if (sc != SL_STATUS_OK) {
-           LOG_ERROR("Error in settting passkey\n\r");
-           break;
-       }
-
-       sc = sl_bt_sm_set_bondable_mode(1);
-       if (sc != SL_STATUS_OK) {
-           LOG_ERROR("Error in settting bondable mode\n\r");
-           break;
-       }
 
        sc = sl_bt_sm_delete_bondings();
        if (sc != SL_STATUS_OK) {
@@ -296,6 +279,12 @@ void handle_ble_event(sl_bt_msg_t *evt){
            break;
        }
 
+
+       sc = sl_bt_sm_configure(0x0f,sl_bt_sm_io_capability_displayyesno);
+       if (sc != SL_STATUS_OK) {
+           LOG_ERROR("Error in configuring security manager\n\r");
+           break;
+       }
 
 
 
@@ -576,7 +565,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       if( evt->data.evt_system_external_signal.extsignals == evtPushbuttonEvent){
 
-          sc = sm_passkey_confirm(ble_data.bond_connection,1);
+          sc = sl_bt_sm_passkey_confirm(ble_data.bond_connection,1);
           if (sc != SL_STATUS_OK) {
              LOG_ERROR("Error in confirming passkey\n\r");
              break;
@@ -590,8 +579,8 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
     case sl_bt_evt_sm_bonded_id:{
 
-
-
+      displayPrintf(DISPLAY_ROW_CONNECTION,"Bonded");
+      displayPrintf(DISPLAY_ROW_PASSKEY,"");
 
       break;
     }

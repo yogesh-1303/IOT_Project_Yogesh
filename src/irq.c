@@ -157,6 +157,7 @@ void GPIO_EVEN_IRQHandler(void){
   if (flags == (1<<6)){
 
       LOG_INFO("Button Pressed\r");
+      schedulerSetPushbuttonEvent();
 
 
   }
