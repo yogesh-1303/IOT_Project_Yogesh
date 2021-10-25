@@ -153,16 +153,16 @@ void GPIO_EVEN_IRQHandler(void){
 
   GPIO_IntClear(flags);
 
-
-  if (flags == (1<<6)){
-
+  if(!(GPIO_PinInGet(PUSHBUTTON_port, PUSHBUTTON_pin)))
+  {
       LOG_INFO("Button Pressed\r");
-      schedulerSetPushbuttonEvent();
-
-
+            schedulerSetPushbuttonPressEvent();
   }
-
-
+  else
+  {
+      LOG_INFO("Button Released\r");
+            schedulerSetPushbuttonReleaseEvent();
+  }
 
 }
 

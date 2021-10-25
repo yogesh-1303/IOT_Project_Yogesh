@@ -116,15 +116,28 @@ void schedulerSetNOEvent(){
 
 }
 
-void schedulerSetPushbuttonEvent(){
+void schedulerSetPushbuttonPressEvent(){
 
   CORE_DECLARE_IRQ_STATE;
 
   CORE_ENTER_CRITICAL();
 
-  sl_bt_external_signal(evtPushbuttonEvent);
+  sl_bt_external_signal(evtPushbuttonPressEvent);
 
   CORE_EXIT_CRITICAL();
+
+}
+
+void schedulerSetPushbuttonReleaseEvent(){
+
+  CORE_DECLARE_IRQ_STATE;
+
+  CORE_ENTER_CRITICAL();
+
+  sl_bt_external_signal(evtPushbuttonReleaseEvent);
+
+  CORE_EXIT_CRITICAL();
+
 
 }
 
@@ -135,7 +148,9 @@ void Si7021_state_machine(sl_bt_msg_t *evt){
   // Enable measurement only if connection is opened and disable measurement when closed
   ble_data_struct_t* data = getBleDataPtr();
 
-  if (data->enable_measurement == true){
+  if(data->connection_status && (data->pushbutton_indication_status || data->temp_measure_indication_status )){
+
+  //if (data->enable_measurement == true){
 
       if (SL_BT_MSG_ID(evt->header) == sl_bt_evt_system_external_signal_id){
 
@@ -226,9 +241,9 @@ void Si7021_state_machine(sl_bt_msg_t *evt){
 
                  sl_power_manager_remove_em_requirement(EM1);
 
-                 //Enable_si7021(false);
-
                  process_temp_si7021();
+
+                 transmit_tempdata();
 
                  next_state = IDLE_State;
 

@@ -59,6 +59,7 @@
 #include "src/scheduler.h"
 
 #include "src/ble.h"
+#include "src/queue.h"
 
 
 // See: https://docs.silabs.com/gecko-platform/latest/service/power_manager/overview

@@ -35,15 +35,26 @@ typedef struct {
   // values that are common to servers and clients
   bd_addr myAddress;
   uint8_t myAddressType;
-
+  bool connection_status;
 
   // values unique for server
+  uint8_t bleconnection;
   uint8_t bond_connection;
   // The advertising set handle allocated from Bluetooth stack.
   uint8_t advertisingSetHandle;
-  bool temp_measure_status;
-  bool temp_type_status;
-  bool temp_interval_status;
+
+  bool bond_status;
+
+  bool pushbutton_indication_status;
+  bool pushbutton_inflight_status;
+
+  bool temp_measure_indication_status;
+  bool temp_type_indication_status;
+  bool temp_interval_indication_status;
+
+  bool temp_measure_inflight_status;
+  bool temp_type_inflight_status;
+  bool temp_interval_inflight_status;
 
   bool enable_measurement;
 
@@ -62,7 +73,8 @@ typedef struct {
 } ble_data_struct_t;
 
 
-void transmit_tempdata(sl_bt_msg_t *evt,uint16_t attribute);
+
+void transmit_tempdata();
 
 void transmit_temptype(sl_bt_msg_t *evt,uint16_t attribute);
 

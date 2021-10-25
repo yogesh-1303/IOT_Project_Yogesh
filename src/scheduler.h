@@ -25,7 +25,8 @@ typedef enum {
   evtConnection_Opened=4,
   evtProcedure_Completed=5,
   evtConnection_Closed=6,
-  evtPushbuttonEvent=7,
+  evtPushbuttonPressEvent=7,
+  evtPushbuttonReleaseEvent=8,
   totalevents
 }event;
 
@@ -57,7 +58,9 @@ void schedulerSetProcedure_CompletedEvent();
 
 void schedulerSetConnection_ClosedEvent();
 
-void schedulerSetPushbuttonEvent();
+void schedulerSetPushbuttonPressEvent();
+
+void schedulerSetPushbuttonReleaseEvent();
 
 void Si7021_state_machine(sl_bt_msg_t *evt);
 
