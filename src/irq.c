@@ -155,13 +155,13 @@ void GPIO_EVEN_IRQHandler(void){
 
   if(!(GPIO_PinInGet(PUSHBUTTON_port, PUSHBUTTON_pin)))
   {
-      LOG_INFO("Button Pressed\r");
-            schedulerSetPushbuttonPressEvent();
+      //LOG_INFO("Button Pressed\n\r");
+      schedulerSetPushbuttonPressEvent();
   }
   else
   {
-      LOG_INFO("Button Released\r");
-            schedulerSetPushbuttonReleaseEvent();
+      //LOG_INFO("Button Released\n\r");
+      schedulerSetPushbuttonReleaseEvent();
   }
 
 }

@@ -29,19 +29,20 @@ cbfifo cb={.write=0,.read=0};            //Initialise read & write index
 size_t cbfifo_enqueue(indication temp, size_t nbyte){
 
 
-    size_t current_length,current_space;
+    size_t current_length;
     current_length=cbfifo_length();
-    current_space=size-current_length-1;    //To distinguish between empty & full one byte is kept as it is
     size_t bytes_written=0;
 
     if(cbfifo_capacity() == current_length)
       return 0;
 
-       for(int i=0;i<nbyte;i++){
+       for(uint8_t i=0;i<nbyte;i++){
 
            cb.buffer[cb.write].charHandle = temp.charHandle;
-           for(int i = 0; i < temp.bufferlength;i++ ){
-           cb.buffer[cb.write].buffer[i] = temp.buffer[i];
+           for(uint8_t j = 0; j < temp.bufferlength;j++ ){
+
+               cb.buffer[cb.write].buffer[j] = temp.buffer[j];
+
            }
 
            bytes_written++;
@@ -75,9 +76,9 @@ size_t cbfifo_dequeue(indication *temp, size_t nbyte){
 
          temp->bufferlength = cb.buffer[cb.read].bufferlength;
 
-         for(int i = 0; i < temp->bufferlength;i++ ){
+         for(uint8_t j = 0; j < temp->bufferlength;j++ ){
 
-             temp->buffer[i] = cb.buffer[cb.read].buffer[i] ;
+             temp->buffer[j] = cb.buffer[cb.read].buffer[j] ;
 
          }
          temp->charHandle = cb.buffer[cb.read].charHandle;

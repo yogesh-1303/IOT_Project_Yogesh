@@ -84,7 +84,7 @@ void button_indications()
            buttonstatus = 0;
            sc = sl_bt_gatt_server_write_attribute_value(gattdb_button_state, 0, 1, (uint8_t *)&buttonvalue_buffer[0]); //button_state
 
-           sc = sl_bt_gatt_server_send_indication(ble_data.bleconnection, gattdb_button_state,sizeof(buttonvalue), &(buttonvalue));
+           sc = sl_bt_gatt_server_send_indication(ble_data.bleconnection, gattdb_button_state,2,(uint8_t*)&(buttonvalue_buffer[0]));
            if (sc != SL_STATUS_OK) {
                LOG_ERROR("Errors are while sending indication\n\r");
 
@@ -131,7 +131,7 @@ void transmit_tempdata(){
       temp.bufferlength = 5;
       memcpy(temp.buffer, htm_temperature_buffer,sizeof(htm_temperature_buffer));
       cbfifo_enqueue(temp, 1);
-      LOG_INFO("ENQUEUED:\n\r");
+      //LOG_INFO("-------ENQUEUED-----\n\r");
 
       return;
 
@@ -161,142 +161,7 @@ void transmit_tempdata(){
 
   }
 
-  /*
-  // client characteristic configuration changed by remote GATT client
- if (sl_bt_gatt_server_client_config == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
-
-     // Check if notifications and indications are not disabled
-     if(((sl_bt_gatt_client_config_flag_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags) != sl_bt_gatt_disable){
-     // -------------------------------// Write our local GATT DB// -------------------------------
-     sc = sl_bt_gatt_server_write_attribute_value(attribute,0,5,&htm_temperature_buffer[0]);
-     if (sc != SL_STATUS_OK)
-       {
-         LOG_ERROR("sl_bt_gatt_server_write_attribute_value() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
-       }
-
-
-     sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,5,&htm_temperature_buffer[0]);
-
-     if (sc != SL_STATUS_OK)
-     {
-        LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
-     }
-
-     else {
-         ble_data_struct_t* data = getBleDataPtr();
-         data->temp_measure_status = true;
-     }
-
-
-     //Display Temperature on LCD
-     displayPrintf(DISPLAY_ROW_TEMPVALUE,"Temp=%d",read_data);
-  }
-
-     else if (sl_bt_gatt_disable == ((sl_bt_gatt_client_config_flag_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags)){
-
-         displayPrintf(DISPLAY_ROW_TEMPVALUE,"");
-
-     }
-
- }
-
- // Confirmation of indication received from remove GATT client
- else if (sl_bt_gatt_server_confirmation == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
-
-          ble_data_struct_t* data = getBleDataPtr();
-          data->temp_measure_status = false;
-
- }*/
-
 }
-
-void transmit_temptype(sl_bt_msg_t *evt,uint16_t attribute){
-  /*
-
-  sl_status_t sc;
-
-  uint8_t temperature_type = SL_BT_HT_TEMPERATURE_TYPE;
-
-
-  if (sl_bt_gatt_server_client_config == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
-
-      // Check if notifications and indications are not disabled
-      if(((sl_bt_gatt_client_config_flag_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags) != sl_bt_gatt_disable){
-
-      // -------------------------------// Write our local GATT DB// -------------------------------
-      sc = sl_bt_gatt_server_write_attribute_value(attribute,0,sizeof(temperature_type),&temperature_type);
-
-      if (sc != SL_STATUS_OK)
-       {
-          LOG_ERROR("sl_bt_gatt_server_write_attribute() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
-       }
-
-       sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,sizeof(temperature_type),&temperature_type);
-
-       if (sc != SL_STATUS_OK)
-       {
-          LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
-       }
-
-       else {
-           ble_data_struct_t* data = getBleDataPtr();
-           data->temp_type_status = true;
-       }
-   }
-
-}
-
-  // Confirmation of indication received from remove GATT client
-   else if (sl_bt_gatt_server_confirmation == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
-
-        ble_data_struct_t* data = getBleDataPtr();
-        data->temp_type_status = false;
-   }*/
-}
-
-
-void transmit_tempinterval(sl_bt_msg_t *evt,uint16_t attribute){
-
-  /*sl_status_t sc;
-
-  uint16_t measurement_interval = MEASUREMENT_INTERVAL;
-
-  if (sl_bt_gatt_server_client_config == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
-
-      // Check if notifications and indications are not disabled
-      if(((sl_bt_gatt_client_config_flag_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags) != sl_bt_gatt_disable){
-
-          // -------------------------------// Write our local GATT DB// -------------------------------
-        sc = sl_bt_gatt_server_write_attribute_value(attribute,0,sizeof(measurement_interval),(uint8_t *)&measurement_interval);
-
-        if (sc != SL_STATUS_OK)
-         {
-            LOG_ERROR("sl_bt_gatt_server_write_attribute() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
-         }
-
-         sc = sl_bt_gatt_server_send_indication(evt->data.evt_gatt_server_characteristic_status.connection,evt->data.evt_gatt_server_characteristic_status.characteristic,sizeof(measurement_interval),(uint8_t *)&measurement_interval);
-
-         if (sc != SL_STATUS_OK)
-         {
-            LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x\n\r", (unsigned int) sc);
-         }
-
-         else {
-             ble_data_struct_t* data = getBleDataPtr();
-             data->temp_interval_status = true;
-         }
-     }
-
- }
-
-    // confirmation of indication received from remove GATT client
-     else if (sl_bt_gatt_server_confirmation == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
-              ble_data_struct_t* data = getBleDataPtr();
-              data->temp_interval_status = false;
-   }*/
-}
-
-
 
 
 
@@ -676,14 +541,75 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       if  (evt->data.evt_gatt_server_characteristic_status.characteristic == gattdb_temperature_type ){
 
-          //transmit_temptype(evt,gattdb_temperature_type);
+          // Check if notifications and indications are not disabled
+         if(((sl_bt_gatt_client_config_flag_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags) != sl_bt_gatt_disable){
+
+             // client characteristic configuration changed by remote GATT client
+             if (sl_bt_gatt_server_client_config == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
+
+                 if (sl_bt_gatt_server_indication == (sl_bt_gatt_server_client_configuration_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags){
+
+                     ble_data_struct_t* data = getBleDataPtr();
+                     data->temp_type_indication_status = true;
+
+                 }
+
+             }
+
+         }
+
+         else {
+
+             ble_data_struct_t* data = getBleDataPtr();
+             data->temp_type_indication_status = false;
+
+         }
+
+         if (sl_bt_gatt_server_confirmation == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
+
+                  ble_data_struct_t* data = getBleDataPtr();
+                  data->temp_type_inflight_status = false;
+
+         }
 
 
       }
 
       if  (evt->data.evt_gatt_server_characteristic_status.characteristic == gattdb_measurement_interval){
 
-          //transmit_tempinterval(evt,gattdb_measurement_interval);
+          // Check if notifications and indications are not disabled
+         if(((sl_bt_gatt_client_config_flag_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags) != sl_bt_gatt_disable){
+
+             // client characteristic configuration changed by remote GATT client
+             if (sl_bt_gatt_server_client_config == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
+
+                 if (sl_bt_gatt_server_indication == (sl_bt_gatt_server_client_configuration_t)evt->data.evt_gatt_server_characteristic_status.client_config_flags){
+
+                     ble_data_struct_t* data = getBleDataPtr();
+                     data->temp_interval_indication_status = true;
+
+                 }
+
+             }
+
+         }
+
+         else {
+
+             ble_data_struct_t* data = getBleDataPtr();
+             data->temp_interval_indication_status = false;
+
+         }
+
+         if (sl_bt_gatt_server_confirmation == (sl_bt_gatt_server_characteristic_status_flag_t)evt->data.evt_gatt_server_characteristic_status.status_flags) {
+
+                  ble_data_struct_t* data = getBleDataPtr();
+                  data->temp_interval_inflight_status = false;
+
+         }
+
+
+
 
       }
 
@@ -730,7 +656,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
               indication extracted;
               cbfifo_dequeue(&extracted, 1);
 
-              LOG_INFO("DEQUED:%d ,%d ",extracted.charHandle, extracted.bufferlength);
+              //LOG_INFO("DEQUED:%d ,%d ",extracted.charHandle, extracted.bufferlength);
 
               sc = sl_bt_gatt_server_send_indication(data->bleconnection, extracted.charHandle, extracted.bufferlength, &(extracted.buffer[0]));
               if (sc != SL_STATUS_OK) {
@@ -759,7 +685,9 @@ void handle_ble_event(sl_bt_msg_t *evt){
       }
 
       else {
-      displayUpdate();
+
+          displayUpdate();
+
       }
 
       break;
@@ -826,6 +754,8 @@ void handle_ble_event(sl_bt_msg_t *evt){
     case sl_bt_evt_sm_bonded_id:{
 
       displayPrintf(DISPLAY_ROW_CONNECTION,"Bonded");
+      displayPrintf(DISPLAY_ROW_ACTION,"");
+      displayPrintf(DISPLAY_ROW_9,"");
       displayPrintf(DISPLAY_ROW_PASSKEY,"");
       ble_data.bond_status = true;
 
