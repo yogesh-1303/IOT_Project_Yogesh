@@ -63,8 +63,13 @@ typedef struct {
   uint8_t new_connection;
   bool newconnection_status;
 
-  uint32_t service;
-  uint32_t characteristic;
+  uint32_t temperature_service;
+  uint32_t temperature_characteristic;
+
+  uint32_t button_service;
+  uint32_t button_characteristic;
+
+  bool indications_enabled;
 
 
   uint8_t procedure_completion;

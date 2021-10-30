@@ -25,8 +25,10 @@ typedef enum {
   evtConnection_Opened=4,
   evtProcedure_Completed=5,
   evtConnection_Closed=6,
-  evtPushbuttonPressEvent=7,
-  evtPushbuttonReleaseEvent=8,
+  evtPushbuttonPB0PressEvent=7,
+  evtPushbuttonPB0ReleaseEvent=8,
+  evtPushbuttonPB1PressEvent=9,
+  evtPushbuttonPB1ReleaseEvent=10,
   totalevents
 }event;
 
@@ -37,9 +39,13 @@ typedef enum uint32_t{
   I2Cwrite_State,
   I2Cread_State,
   POWERDOWN_State,
-  STARTCLIENT_State,
-  SERVICE_DISCOVERY_State,
-  CHARACTERISTIC_DISCOVERY_State,
+  STARTCLIENTtempservice_tempState,
+  STARTCLIENTtempservice_State,
+  TEMP_SERVICE_DISCOVERY_State,
+  TEMP_CHARACTERISTIC_DISCOVERY_State,
+  STARTCLIENTbuttonservice_State,
+  BUTTON_SERVICE_DISCOVERY_State,
+  BUTTON_CHARACTERISTIC_DISCOVERY_State,
   CLOSECLIENT_State
 }state_t;
 
@@ -58,9 +64,13 @@ void schedulerSetProcedure_CompletedEvent();
 
 void schedulerSetConnection_ClosedEvent();
 
-void schedulerSetPushbuttonPressEvent();
+void schedulerSetPushbuttonPB0PressEvent();
 
-void schedulerSetPushbuttonReleaseEvent();
+void schedulerSetPushbuttonPB0ReleaseEvent();
+
+void schedulerSetPushbuttonPB1PressEvent();
+
+void schedulerSetPushbuttonPB1ReleaseEvent();
 
 void Si7021_state_machine(sl_bt_msg_t *evt);
 

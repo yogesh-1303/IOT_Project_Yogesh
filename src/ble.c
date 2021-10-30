@@ -34,10 +34,14 @@ uint8_t buttonvalue_buffer[2] = {0};
 static const uint8_t thermo_service[2] = { 0x09, 0x18 };
 // Temperature Measurement characteristic UUID defined by Bluetooth SIG
 static const uint8_t thermo_char[2] = { 0x1c, 0x2a };
+
+static const uint8_t button_service[16] = {0x89,0x62,0x13,0x2d,0x2a,0x65,0xec,0x87,0x3e,0x43,0xc8,0x38,0x01,0x00,0x00,0x00};
+
+static const uint8_t button_char[16] = {0x89,0x62,0x13,0x2d,0x2a,0x65,0xec,0x87,0x3e,0x43,0xc8,0x38,0x02,0x00,0x00,0x00};
 #endif
 
 // BLE private data
-ble_data_struct_t ble_data = {.temp_measure_indication_status=false,.temp_type_indication_status=false,.temp_interval_indication_status=false,.enable_measurement=false,.temp_measure_inflight_status=false,. temp_type_inflight_status=false,.temp_interval_inflight_status=false};
+ble_data_struct_t ble_data = {.temp_measure_indication_status=false,.temp_type_indication_status=false,.temp_interval_indication_status=false,.enable_measurement=false,.temp_measure_inflight_status=false,. temp_type_inflight_status=false,.temp_interval_inflight_status=false,.indications_enabled=false};
 
 
 ble_data_struct_t* getBleDataPtr(){
@@ -131,7 +135,7 @@ void transmit_tempdata(){
       temp.bufferlength = 5;
       memcpy(temp.buffer, htm_temperature_buffer,sizeof(htm_temperature_buffer));
       cbfifo_enqueue(temp, 1);
-      //LOG_INFO("-------ENQUEUED-----\n\r");
+      LOG_INFO("-------ENQUEUED-----\n\r");
 
       return;
 
@@ -279,7 +283,10 @@ void handle_ble_event(sl_bt_msg_t *evt){
        sprintf(string_buffer,"%x:%x:%x:%x:%x:%x",ble_data.myAddress.addr[0],ble_data.myAddress.addr[1],ble_data.myAddress.addr[2],ble_data.myAddress.addr[3],ble_data.myAddress.addr[4],ble_data.myAddress.addr[5]);
        displayPrintf(DISPLAY_ROW_BTADDR,"%s", string_buffer);
 
-       displayPrintf(DISPLAY_ROW_ASSIGNMENT,"A7");
+       displayPrintf(DISPLAY_ROW_ASSIGNMENT,"A9");
+
+
+
 
        // Configure for passive scanning
        sc = sl_bt_scanner_set_mode(sl_bt_gap_1m_phy, PASSIVE_SCANNING);
@@ -306,6 +313,25 @@ void handle_ble_event(sl_bt_msg_t *evt){
            LOG_ERROR("Error in starting scanning\n\r");
            break;
        }
+
+       sc = sl_bt_sm_configure(0x0f,sl_bt_sm_io_capability_displayyesno);
+       if (sc != SL_STATUS_OK) {
+           LOG_ERROR("Error in configuring security manager\n\r");
+           break;
+       }
+
+       /*Security Manager*/
+
+
+       sc = sl_bt_sm_delete_bondings();
+       if (sc != SL_STATUS_OK) {
+           LOG_ERROR("Error in deleting bonds\n\r");
+           break;
+       }
+
+
+
+
 
        //DISPLAY_ROW_CONNECTION
        displayPrintf(DISPLAY_ROW_CONNECTION,"Discovering");
@@ -656,7 +682,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
               indication extracted;
               cbfifo_dequeue(&extracted, 1);
 
-              //LOG_INFO("DEQUED:%d ,%d ",extracted.charHandle, extracted.bufferlength);
+              LOG_INFO("DEQUED:%d ,%d\n\r",extracted.charHandle, extracted.bufferlength);
 
               sc = sl_bt_gatt_server_send_indication(data->bleconnection, extracted.charHandle, extracted.bufferlength, &(extracted.buffer[0]));
               if (sc != SL_STATUS_OK) {
@@ -720,7 +746,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
     case sl_bt_evt_system_external_signal_id:{
 
 
-      if( evt->data.evt_system_external_signal.extsignals == evtPushbuttonPressEvent){
+      if( evt->data.evt_system_external_signal.extsignals == evtPushbuttonPB0PressEvent){
 
           if (ble_data.bond_status == false){
             sc = sl_bt_sm_passkey_confirm(ble_data.bond_connection,1);
@@ -737,7 +763,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       }
 
-      else if( evt->data.evt_system_external_signal.extsignals == evtPushbuttonReleaseEvent){
+      else if( evt->data.evt_system_external_signal.extsignals == evtPushbuttonPB0ReleaseEvent){
 
           displayPrintf(DISPLAY_ROW_9,"Button Released");
           buttonstatus = 1;
@@ -770,6 +796,8 @@ void handle_ble_event(sl_bt_msg_t *evt){
       displayPrintf(DISPLAY_ROW_CONNECTION, "bonding failed");
 
       ble_data.bond_status = false;
+
+      break;
 
     }
 
@@ -826,13 +854,81 @@ void handle_ble_event(sl_bt_msg_t *evt){
       break;
     }
 
+      case sl_bt_evt_sm_confirm_bonding_id:{
+
+           sc = sl_bt_sm_bonding_confirm(evt->data.evt_sm_confirm_bonding.connection,0x01);
+
+           if (sc != SL_STATUS_OK) {
+              LOG_ERROR("Error in confirming bonding\n\r");
+              break;
+           }
+
+           ble_data.bond_connection = evt->data.evt_sm_confirm_bonding.connection;
+
+           break;
+         }
+
+     case sl_bt_evt_sm_confirm_passkey_id:{
+
+       displayPrintf(DISPLAY_ROW_PASSKEY,"%d",evt->data.evt_sm_confirm_passkey.passkey);
+       displayPrintf(DISPLAY_ROW_ACTION,"Confirm with PB0");
+
+
+       break;
+     }
+
+
+
+     case sl_bt_evt_sm_bonded_id:{
+
+       displayPrintf(DISPLAY_ROW_CONNECTION,"Bonded");
+       displayPrintf(DISPLAY_ROW_ACTION,"");
+       displayPrintf(DISPLAY_ROW_9,"");
+       displayPrintf(DISPLAY_ROW_PASSKEY,"");
+       ble_data.bond_status = true;
+
+       break;
+     }
+
+     case sl_bt_evt_sm_bonding_failed_id:{
+
+       LOG_ERROR("Error in bonding\n\r");
+       displayPrintf(DISPLAY_ROW_PASSKEY,"");
+       displayPrintf(DISPLAY_ROW_ACTION,"");
+       displayPrintf(DISPLAY_ROW_CONNECTION, "bonding failed");
+
+       ble_data.bond_status = false;
+
+       break;
+
+     }
+
+
     case  sl_bt_evt_gatt_service_id:{
 
       if(evt->data.evt_gatt_service.uuid.data[0] ==  thermo_service[0] && evt->data.evt_gatt_service.uuid.data[1] ==  thermo_service[1]  ){
 
-         ble_data.service = evt->data.evt_gatt_service.service;
+         ble_data.temperature_service = evt->data.evt_gatt_service.service;
 
       }
+
+
+     uint8_t compare_check = 0;
+
+
+     for(int i=0;i<16;i++){
+
+         if ((evt->data.evt_gatt_service.uuid.data[i]) == button_service[i] ){
+
+             compare_check++;
+
+         }
+     }
+
+
+      if (compare_check == 16)  ble_data.button_service = evt->data.evt_gatt_service.service;
+
+
 
 
       break;
@@ -843,9 +939,25 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       if(evt->data.evt_gatt_characteristic.uuid.data[0] ==  thermo_char[0] && evt->data.evt_gatt_characteristic.uuid.data[1] ==  thermo_char[1]  ){
 
-          ble_data.characteristic = evt->data.evt_gatt_characteristic.characteristic;
+          ble_data.temperature_characteristic = evt->data.evt_gatt_characteristic.characteristic;
 
       }
+
+      uint8_t compare_check = 0;
+
+
+      for(int i=0;i<16;i++){
+
+          if ((evt->data.evt_gatt_characteristic.uuid.data[i]) == button_char[i] ){
+
+                  compare_check++;
+
+              }
+        }
+
+
+       if (compare_check == 16) ble_data.button_characteristic = evt->data.evt_gatt_characteristic.characteristic;
+
 
       break;
     }
@@ -855,8 +967,26 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       ble_data.procedure_completion = evt->data.evt_gatt_procedure_completed.connection;
 
-      // Set Event
-      schedulerSetProcedure_CompletedEvent();
+
+
+      // error in bonding
+      if(evt->data.evt_gatt_procedure_completed.result == 0x110f ){
+
+          sc = sl_bt_sm_increase_security(ble_data.new_connection);
+
+          if (sc != SL_STATUS_OK) {
+              LOG_ERROR("Error in opening connection\n\r");
+              break;
+          }
+      }
+
+      else {
+
+
+          // Set Event
+          schedulerSetProcedure_CompletedEvent();
+
+      }
 
       break;
     }
@@ -864,23 +994,127 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
     case sl_bt_evt_gatt_characteristic_value_id:{
 
-      uint8_t* data = &(evt->data.evt_gatt_characteristic_value.value.data[0]);
+      if ( evt->data.evt_gatt_characteristic_value.att_opcode == sl_bt_gatt_handle_value_indication && evt->data.evt_gatt_characteristic_value.characteristic == ble_data.temperature_characteristic){
 
-      int32_t temperature = FLOAT_TO_INT32(data);
-      LOG_INFO("TEMP====%d",temperature);
-      //Display Temperature on LCD
-      displayPrintf(DISPLAY_ROW_TEMPVALUE,"Temp=%d",temperature);
+          uint8_t* data = &(evt->data.evt_gatt_characteristic_value.value.data[0]);
 
-      sc = sl_bt_gatt_send_characteristic_confirmation(evt->data.evt_gatt_characteristic_value.connection);
-      if (sc != SL_STATUS_OK) {
-          LOG_ERROR("Error in sending confirmation\n\r");
-          break;
+          int32_t temperature = FLOAT_TO_INT32(data);
+          LOG_INFO("TEMP====%d",temperature);
+
+          //Display Temperature on LCD
+          displayPrintf(DISPLAY_ROW_TEMPVALUE,"Temp=%d",temperature);
+
+          sc = sl_bt_gatt_send_characteristic_confirmation(evt->data.evt_gatt_characteristic_value.connection);
+          if (sc != SL_STATUS_OK) {
+              LOG_ERROR("Error in sending confirmation\n\r");
+              break;
+          }
+
       }
 
+      else if ( evt->data.evt_gatt_characteristic_value.att_opcode == sl_bt_gatt_read_response && evt->data.evt_gatt_characteristic_value.characteristic == ble_data.button_characteristic){
 
+          if ( evt->data.evt_gatt_characteristic_value.value.data[1]) displayPrintf(DISPLAY_ROW_9,"Button Pressed");
+
+          else  displayPrintf(DISPLAY_ROW_9,"Button Released");
+
+      }
+
+      else if ( evt->data.evt_gatt_characteristic_value.att_opcode == sl_bt_gatt_handle_value_indication ){
+
+
+          if ( evt->data.evt_gatt_characteristic_value.value.data[1]) displayPrintf(DISPLAY_ROW_9,"Button Pressed");
+
+          else  displayPrintf(DISPLAY_ROW_9,"Button Released");
+
+          sc = sl_bt_gatt_send_characteristic_confirmation(evt->data.evt_gatt_characteristic_value.connection);
+          if (sc != SL_STATUS_OK) {
+              LOG_ERROR("Error in sending confirmation\n\r");
+              break;
+          }
+
+      }
 
       break;
     }
+
+    case sl_bt_evt_system_external_signal_id:{
+
+      if ( evt->data.evt_system_external_signal.extsignals == evtPushbuttonPB0PressEvent){
+
+          if(!ble_data.bond_status){
+
+              sc = sl_bt_sm_passkey_confirm(ble_data.new_connection,1);
+              if (sc != SL_STATUS_OK) {
+                 LOG_ERROR("Error in confirming passkey\n\r");
+                 break;
+              }
+
+              displayPrintf(DISPLAY_ROW_PASSKEY,"");
+              displayPrintf(DISPLAY_ROW_ACTION,"");
+
+          }
+
+              else{
+
+                  ble_data.bond_status = true;
+
+              }
+
+          }
+
+
+    else if ( evt->data.evt_system_external_signal.extsignals == evtPushbuttonPB1PressEvent) {
+
+
+
+         //if( evt->data.evt_system_external_signal.extsignals == evtPushbuttonPB0PressEvent){
+        if(GPIO_PinInGet(gpioPortF,6) == 0){
+
+          if (!ble_data.indications_enabled){
+
+              sc = sl_bt_gatt_set_characteristic_notification(ble_data.new_connection,ble_data.button_characteristic,2);
+              if (sc != SL_STATUS_OK) {
+                  LOG_ERROR("Error in sending confirmation\n\r");
+                  break;
+              }
+
+              ble_data.indications_enabled = !ble_data.indications_enabled;
+          }
+
+          else {
+
+              sc = sl_bt_gatt_set_characteristic_notification(ble_data.new_connection,ble_data.button_characteristic,0);
+              if (sc != SL_STATUS_OK) {
+                  LOG_ERROR("Error in sending confirmation\n\r");
+                  break;
+              }
+
+              ble_data.indications_enabled = !ble_data.indications_enabled;
+
+
+          }
+
+
+         }
+
+         else {
+
+
+             sc  = sl_bt_gatt_read_characteristic_value(ble_data.new_connection,ble_data.button_characteristic);
+             if (sc != SL_STATUS_OK) {
+                 LOG_ERROR("Error in reading characteristic value\n\r");
+                 break;
+             }
+
+
+
+         }
+
+    }
+      break;
+    }
+
 #endif
   }
 

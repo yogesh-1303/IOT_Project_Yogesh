@@ -29,10 +29,12 @@
 #define EXTCOMIN_port gpioPortD
 #define EXTCOMIN_pin 13u
 
-#define PUSHBUTTON_port  gpioPortF
-#define PUSHBUTTON_pin   6u
+#define PUSHBUTTON_PB0port  gpioPortF
+#define PUSHBUTTON_PB0pin   6u
 
 
+#define PUSHBUTTON_PB1port gpioPortF
+#define PUSHBUTTON_PB1pin  7u
 
 
 // Function prototypes

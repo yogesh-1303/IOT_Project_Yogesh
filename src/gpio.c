@@ -40,13 +40,21 @@ void gpioInit()
   GPIO_PinModeSet(EXTCOMIN_port, EXTCOMIN_pin, gpioModePushPull, false);
 
   // Set PB0 as input
-  GPIO_PinModeSet(PUSHBUTTON_port,PUSHBUTTON_pin,gpioModeInputPullFilter, 1);
+  GPIO_PinModeSet(PUSHBUTTON_PB0port,PUSHBUTTON_PB0pin,gpioModeInput, false);
+
+  // Set PB1 as input
+  GPIO_PinModeSet(PUSHBUTTON_PB1port,PUSHBUTTON_PB1pin,gpioModeInput, false);
 
 
   // Enable GPIO interrupts
   NVIC_ClearPendingIRQ(GPIO_EVEN_IRQn);
+
   NVIC_EnableIRQ(GPIO_EVEN_IRQn);
-  GPIO_ExtIntConfig(PUSHBUTTON_port, PUSHBUTTON_pin,PUSHBUTTON_pin, true, true, true);
+  NVIC_EnableIRQ(GPIO_ODD_IRQn);
+
+  GPIO_ExtIntConfig(PUSHBUTTON_PB0port, PUSHBUTTON_PB0pin,PUSHBUTTON_PB0pin, true, true, true);
+
+  GPIO_ExtIntConfig(PUSHBUTTON_PB1port, PUSHBUTTON_PB1pin,PUSHBUTTON_PB1pin, true, true, true);
 
 
 

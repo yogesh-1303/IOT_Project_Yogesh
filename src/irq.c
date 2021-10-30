@@ -153,18 +153,39 @@ void GPIO_EVEN_IRQHandler(void){
 
   GPIO_IntClear(flags);
 
-  if(!(GPIO_PinInGet(PUSHBUTTON_port, PUSHBUTTON_pin)))
+  if(!(GPIO_PinInGet(PUSHBUTTON_PB0port, PUSHBUTTON_PB0pin)))
   {
       //LOG_INFO("Button Pressed\n\r");
-      schedulerSetPushbuttonPressEvent();
+      schedulerSetPushbuttonPB0PressEvent();
   }
   else
   {
       //LOG_INFO("Button Released\n\r");
-      schedulerSetPushbuttonReleaseEvent();
+      schedulerSetPushbuttonPB0ReleaseEvent();
   }
 
 }
+
+
+void GPIO_ODD_IRQHandler(void){
+
+  uint32_t flags = GPIO_IntGetEnabled();
+
+  GPIO_IntClear(flags);
+
+  if(!(GPIO_PinInGet(PUSHBUTTON_PB1port, PUSHBUTTON_PB1pin)))
+  {
+      //LOG_INFO("Button Pressed\n\r");
+      schedulerSetPushbuttonPB1PressEvent();
+  }
+  else
+  {
+      //LOG_INFO("Button Released\n\r");
+      schedulerSetPushbuttonPB1ReleaseEvent();
+  }
+
+}
+
 
 
 
