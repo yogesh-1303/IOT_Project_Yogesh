@@ -71,7 +71,6 @@ typedef struct {
 
   bool indications_enabled;
 
-
   uint8_t procedure_completion;
 
 

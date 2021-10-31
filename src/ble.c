@@ -24,11 +24,13 @@
 
 #define SCANNING_WINDOW                    (40)
 
+// Flags for button status
 uint8_t buttonstatus;
 uint8_t buttonvalue;
+
 uint8_t buttonvalue_buffer[2] = {0};
 
-uint8_t button_sequence[3] = {0};
+uint8_t button_sequence[3] = {0};                      // Array to track button sequence changes
 
 
 #if (DEVICE_IS_BLE_SERVER == 0)
@@ -90,7 +92,7 @@ void button_indications()
            buttonstatus = 0;
 
            if (ble_data.pushbutton_indication_status == true){
-           sc = sl_bt_gatt_server_write_attribute_value(gattdb_button_state, 0, 1, (uint8_t *)&buttonvalue_buffer[0]); //button_state
+           sc = sl_bt_gatt_server_write_attribute_value(gattdb_button_state, 0, 1, (uint8_t *)&buttonvalue_buffer[0]);
 
            sc = sl_bt_gatt_server_send_indication(ble_data.bleconnection, gattdb_button_state,2,(uint8_t*)&(buttonvalue_buffer[0]));
            if (sc != SL_STATUS_OK) {
@@ -533,8 +535,6 @@ void handle_ble_event(sl_bt_msg_t *evt){
                    data->temp_measure_inflight_status = false;
 
           }
-
-
       }
 
       if  (evt->data.evt_gatt_server_characteristic_status.characteristic == gattdb_button_state){
@@ -573,8 +573,6 @@ void handle_ble_event(sl_bt_msg_t *evt){
                            data->pushbutton_inflight_status = false;
 
                   }
-
-
       }
 
       if  (evt->data.evt_gatt_server_characteristic_status.characteristic == gattdb_temperature_type ){
@@ -609,7 +607,6 @@ void handle_ble_event(sl_bt_msg_t *evt){
                   data->temp_type_inflight_status = false;
 
          }
-
 
       }
 
@@ -646,13 +643,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
          }
 
-
-
-
       }
-
-
-
       break;
     }
 
@@ -773,11 +764,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
             }
           }
 
-
-
-
           sc = sl_bt_gatt_server_write_attribute_value(gattdb_button_state, 0, 1, (uint8_t *)&buttonvalue_buffer[1]);
-
 
       }
 
@@ -792,7 +779,6 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
 
       }
-
 
 
       break;
@@ -876,17 +862,17 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       case sl_bt_evt_sm_confirm_bonding_id:{
 
-           sc = sl_bt_sm_bonding_confirm(evt->data.evt_sm_confirm_bonding.connection,0x01);
+         sc = sl_bt_sm_bonding_confirm(evt->data.evt_sm_confirm_bonding.connection,0x01);
 
-           if (sc != SL_STATUS_OK) {
-              LOG_ERROR("Error in confirming bonding\n\r");
-              break;
-           }
-
-           ble_data.bond_connection = evt->data.evt_sm_confirm_bonding.connection;
-
-           break;
+         if (sc != SL_STATUS_OK) {
+            LOG_ERROR("Error in confirming bonding\n\r");
+            break;
          }
+
+         ble_data.bond_connection = evt->data.evt_sm_confirm_bonding.connection;
+
+         break;
+       }
 
      case sl_bt_evt_sm_confirm_passkey_id:{
 
@@ -947,9 +933,6 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
 
       if (compare_check == 16)  ble_data.button_service = evt->data.evt_gatt_service.service;
-
-
-
 
       break;
     }
@@ -1080,17 +1063,15 @@ void handle_ble_event(sl_bt_msg_t *evt){
               else{
 
                   ble_data.bond_status = true;
-
                   button_sequence[0] =  1;
 
               }
 
-          }
+       }
 
       else  if ( evt->data.evt_system_external_signal.extsignals == evtPushbuttonPB0ReleaseEvent){
 
           if (button_sequence[0] == 1 && button_sequence[1] == 1 && button_sequence[2] == 1){
-
 
               button_sequence[0] = 0;
               button_sequence[1] = 0;
@@ -1098,25 +1079,25 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
               if (!ble_data.indications_enabled){
 
-                      sc = sl_bt_gatt_set_characteristic_notification(ble_data.new_connection,ble_data.button_characteristic,2);
-                      if (sc != SL_STATUS_OK) {
-                          LOG_ERROR("Error in sending confirmation\n\r");
-                          break;
-                      }
-
-                      ble_data.indications_enabled = !ble_data.indications_enabled;
+                  sc = sl_bt_gatt_set_characteristic_notification(ble_data.new_connection,ble_data.button_characteristic,2);
+                  if (sc != SL_STATUS_OK) {
+                      LOG_ERROR("Error in sending confirmation\n\r");
+                      break;
                   }
 
-                  else  {
+                  ble_data.indications_enabled = !ble_data.indications_enabled;
 
-                      sc = sl_bt_gatt_set_characteristic_notification(ble_data.new_connection,ble_data.button_characteristic,0);
-                      if (sc != SL_STATUS_OK) {
-                          LOG_ERROR("Error in sending confirmation\n\r");
-                          break;
-                      }
+                  }
 
-                      ble_data.indications_enabled = !ble_data.indications_enabled;
+              else {
 
+                  sc = sl_bt_gatt_set_characteristic_notification(ble_data.new_connection,ble_data.button_characteristic,0);
+                  if (sc != SL_STATUS_OK) {
+                      LOG_ERROR("Error in sending confirmation\n\r");
+                      break;
+                  }
+
+                  ble_data.indications_enabled = !ble_data.indications_enabled;
 
                   }
 
@@ -1126,8 +1107,6 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
 
     else if ( evt->data.evt_system_external_signal.extsignals == evtPushbuttonPB1PressEvent) {
-
-
 
         if ( button_sequence[0] ==  1){
             button_sequence[1] = 1;
