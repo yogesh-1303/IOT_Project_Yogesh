@@ -28,6 +28,8 @@ uint8_t buttonstatus;
 uint8_t buttonvalue;
 uint8_t buttonvalue_buffer[2] = {0};
 
+uint8_t button_sequence[3] = {0};
+
 
 #if (DEVICE_IS_BLE_SERVER == 0)
 // Health Thermometer service UUID defined by Bluetooth SIG
@@ -41,7 +43,7 @@ static const uint8_t button_char[16] = {0x89,0x62,0x13,0x2d,0x2a,0x65,0xec,0x87,
 #endif
 
 // BLE private data
-ble_data_struct_t ble_data = {.temp_measure_indication_status=false,.temp_type_indication_status=false,.temp_interval_indication_status=false,.enable_measurement=false,.temp_measure_inflight_status=false,. temp_type_inflight_status=false,.temp_interval_inflight_status=false,.indications_enabled=false};
+ble_data_struct_t ble_data = {.temp_measure_indication_status=false,.temp_type_indication_status=false,.temp_interval_indication_status=false,.enable_measurement=false,.temp_measure_inflight_status=false,. temp_type_inflight_status=false,.temp_interval_inflight_status=false,.indications_enabled=true};
 
 
 ble_data_struct_t* getBleDataPtr(){
@@ -86,6 +88,8 @@ void button_indications()
 
        if ( !ble_data.temp_measure_inflight_status  && !ble_data.pushbutton_inflight_status){
            buttonstatus = 0;
+
+           if (ble_data.pushbutton_indication_status == true){
            sc = sl_bt_gatt_server_write_attribute_value(gattdb_button_state, 0, 1, (uint8_t *)&buttonvalue_buffer[0]); //button_state
 
            sc = sl_bt_gatt_server_send_indication(ble_data.bleconnection, gattdb_button_state,2,(uint8_t*)&(buttonvalue_buffer[0]));
@@ -95,6 +99,7 @@ void button_indications()
             }
              ble_data.pushbutton_inflight_status = true;
 
+           }
        }
 
        else {
@@ -170,6 +175,7 @@ void transmit_tempdata(){
 
 
 
+
 void handle_ble_event(sl_bt_msg_t *evt){
 
   sl_status_t sc;
@@ -204,7 +210,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
       sprintf(string_buffer,"%x:%x:%x:%x:%x:%x",ble_data.myAddress.addr[0],ble_data.myAddress.addr[1],ble_data.myAddress.addr[2],ble_data.myAddress.addr[3],ble_data.myAddress.addr[4],ble_data.myAddress.addr[5]);
       displayPrintf(DISPLAY_ROW_BTADDR,"%s", string_buffer);
 
-      displayPrintf(DISPLAY_ROW_ASSIGNMENT,"A8");
+      displayPrintf(DISPLAY_ROW_ASSIGNMENT,"A9");
 
       //LOG_INFO("\nIdentity Retrieved");
       // Create an advertising set.
@@ -451,6 +457,12 @@ void handle_ble_event(sl_bt_msg_t *evt){
      displayPrintf(DISPLAY_ROW_TEMPVALUE,"");
      displayPrintf(DISPLAY_ROW_BTADDR2,"");
      displayPrintf(DISPLAY_ROW_CONNECTION,"Discovering");
+
+     sc = sl_bt_sm_delete_bondings();
+     if (sc != SL_STATUS_OK) {
+         LOG_ERROR("Error in deleting bonds\n\r");
+         break;
+     }
 
 
      sc = sl_bt_scanner_start(sl_bt_gap_1m_phy,sl_bt_scanner_discover_generic);
@@ -748,6 +760,11 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       if( evt->data.evt_system_external_signal.extsignals == evtPushbuttonPB0PressEvent){
 
+          displayPrintf(DISPLAY_ROW_9,"Button Pressed");
+          buttonstatus = 1;
+          buttonvalue=1;
+          buttonvalue_buffer[1] = 1;
+
           if (ble_data.bond_status == false){
             sc = sl_bt_sm_passkey_confirm(ble_data.bond_connection,1);
             if (sc != SL_STATUS_OK) {
@@ -756,10 +773,11 @@ void handle_ble_event(sl_bt_msg_t *evt){
             }
           }
 
-          displayPrintf(DISPLAY_ROW_9,"Button Pressed");
-          buttonstatus = 1;
-          buttonvalue=1;
-          buttonvalue_buffer[1] = 1;
+
+
+
+          sc = sl_bt_gatt_server_write_attribute_value(gattdb_button_state, 0, 1, (uint8_t *)&buttonvalue_buffer[1]);
+
 
       }
 
@@ -769,6 +787,9 @@ void handle_ble_event(sl_bt_msg_t *evt){
           buttonstatus = 1;
           buttonvalue=0;
           buttonvalue_buffer[1] = 0;
+
+          sc = sl_bt_gatt_server_write_attribute_value(gattdb_button_state, 0, 1, (uint8_t *)&buttonvalue_buffer[1]);
+
 
       }
 
@@ -797,11 +818,10 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       ble_data.bond_status = false;
 
-      break;
-
     }
 
 #endif
+
 
 //
 #if (DEVICE_IS_BLE_SERVER == 0)
@@ -1014,9 +1034,10 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       else if ( evt->data.evt_gatt_characteristic_value.att_opcode == sl_bt_gatt_read_response && evt->data.evt_gatt_characteristic_value.characteristic == ble_data.button_characteristic){
 
-          if ( evt->data.evt_gatt_characteristic_value.value.data[1]) displayPrintf(DISPLAY_ROW_9,"Button Pressed");
+          if ( evt->data.evt_gatt_characteristic_value.value.data[0]) displayPrintf(DISPLAY_ROW_9,"Button Pressed");
 
           else  displayPrintf(DISPLAY_ROW_9,"Button Released");
+
 
       }
 
@@ -1042,6 +1063,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       if ( evt->data.evt_system_external_signal.extsignals == evtPushbuttonPB0PressEvent){
 
+
           if(!ble_data.bond_status){
 
               sc = sl_bt_sm_passkey_confirm(ble_data.new_connection,1);
@@ -1059,59 +1081,76 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
                   ble_data.bond_status = true;
 
+                  button_sequence[0] =  1;
+
               }
 
           }
+
+      else  if ( evt->data.evt_system_external_signal.extsignals == evtPushbuttonPB0ReleaseEvent){
+
+          if (button_sequence[0] == 1 && button_sequence[1] == 1 && button_sequence[2] == 1){
+
+
+              button_sequence[0] = 0;
+              button_sequence[1] = 0;
+              button_sequence[2] = 0;
+
+              if (!ble_data.indications_enabled){
+
+                      sc = sl_bt_gatt_set_characteristic_notification(ble_data.new_connection,ble_data.button_characteristic,2);
+                      if (sc != SL_STATUS_OK) {
+                          LOG_ERROR("Error in sending confirmation\n\r");
+                          break;
+                      }
+
+                      ble_data.indications_enabled = !ble_data.indications_enabled;
+                  }
+
+                  else  {
+
+                      sc = sl_bt_gatt_set_characteristic_notification(ble_data.new_connection,ble_data.button_characteristic,0);
+                      if (sc != SL_STATUS_OK) {
+                          LOG_ERROR("Error in sending confirmation\n\r");
+                          break;
+                      }
+
+                      ble_data.indications_enabled = !ble_data.indications_enabled;
+
+
+                  }
+
+          }
+
+      }
 
 
     else if ( evt->data.evt_system_external_signal.extsignals == evtPushbuttonPB1PressEvent) {
 
 
 
-         //if( evt->data.evt_system_external_signal.extsignals == evtPushbuttonPB0PressEvent){
-        if(GPIO_PinInGet(gpioPortF,6) == 0){
-
-          if (!ble_data.indications_enabled){
-
-              sc = sl_bt_gatt_set_characteristic_notification(ble_data.new_connection,ble_data.button_characteristic,2);
-              if (sc != SL_STATUS_OK) {
-                  LOG_ERROR("Error in sending confirmation\n\r");
-                  break;
-              }
-
-              ble_data.indications_enabled = !ble_data.indications_enabled;
-          }
-
-          else {
-
-              sc = sl_bt_gatt_set_characteristic_notification(ble_data.new_connection,ble_data.button_characteristic,0);
-              if (sc != SL_STATUS_OK) {
-                  LOG_ERROR("Error in sending confirmation\n\r");
-                  break;
-              }
-
-              ble_data.indications_enabled = !ble_data.indications_enabled;
+        if ( button_sequence[0] ==  1){
+            button_sequence[1] = 1;
+            break;
+        }
 
 
-          }
-
-
+         sc  = sl_bt_gatt_read_characteristic_value(ble_data.new_connection,ble_data.button_characteristic);
+         if (sc != SL_STATUS_OK) {
+             LOG_ERROR("Error in reading characteristic value\n\r");
+             break;
          }
 
-         else {
-
-
-             sc  = sl_bt_gatt_read_characteristic_value(ble_data.new_connection,ble_data.button_characteristic);
-             if (sc != SL_STATUS_OK) {
-                 LOG_ERROR("Error in reading characteristic value\n\r");
-                 break;
-             }
-
-
-
-         }
 
     }
+
+
+    else if ( evt->data.evt_system_external_signal.extsignals == evtPushbuttonPB1ReleaseEvent) {
+
+        if (button_sequence[0] == 1 && button_sequence[1] == 1 ) button_sequence[2] = 1;
+
+    }
+
       break;
     }
 
