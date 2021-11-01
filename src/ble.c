@@ -458,6 +458,8 @@ void handle_ble_event(sl_bt_msg_t *evt){
      displayPrintf(DISPLAY_ROW_CONNECTION,"");
      displayPrintf(DISPLAY_ROW_TEMPVALUE,"");
      displayPrintf(DISPLAY_ROW_BTADDR2,"");
+     displayPrintf(DISPLAY_ROW_ACTION,"");
+     displayPrintf(DISPLAY_ROW_9,"");
      displayPrintf(DISPLAY_ROW_CONNECTION,"Discovering");
 
      sc = sl_bt_sm_delete_bondings();

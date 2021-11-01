@@ -419,7 +419,9 @@ void discovery_state_machine(sl_bt_msg_t *evt){
 
             case BUTTON_SERVICE_DISCOVERY_State:{
 
+              next_state = BUTTON_SERVICE_DISCOVERY_State;
 
+              if (evt->data.evt_system_external_signal.extsignals == evtProcedure_Completed){
 
               ble_data_struct_t* data = getBleDataPtr();
 
@@ -435,6 +437,8 @@ void discovery_state_machine(sl_bt_msg_t *evt){
 
 
                next_state = BUTTON_CHARACTERISTIC_DISCOVERY_State;
+
+            }
 
               break;
             }

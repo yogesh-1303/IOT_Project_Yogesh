@@ -24,7 +24,7 @@ I2C_TransferSeq_TypeDef transferSequence;
 uint8_t cmd_data;
 
 // Variable for temperature in celsius
-uint16_t read_data;
+uint32_t read_data;
 
 // Buffer for storing read data
 uint8_t *temp_buffer;
