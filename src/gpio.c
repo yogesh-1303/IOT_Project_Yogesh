@@ -45,6 +45,10 @@ void gpioInit()
   // Set PB1 as input
   GPIO_PinModeSet(PUSHBUTTON_PB1port,PUSHBUTTON_PB1pin,gpioModeInput, false);
 
+  GPIO_PinModeSet(MOTOR_PORT, MOTOR_PIN_1, gpioModePushPull, false);
+  GPIO_PinModeSet(MOTOR_PORT, MOTOR_PIN_2, gpioModePushPull, false);
+  GPIO_PinModeSet(MOTOR_PORT, MOTOR_EN, gpioModePushPull, false);
+
 
   // Enable GPIO interrupts
   NVIC_ClearPendingIRQ(GPIO_EVEN_IRQn);
@@ -60,25 +64,61 @@ void gpioInit()
 
 } // gpioInit()
 
-
+//Led0 on
 void gpioLed0SetOn()
 {
   GPIO_PinOutSet(LED0_port,LED0_pin);
 }
 
+//motor pin 1 on
+void gpioMotorPin1On()
+{
+  GPIO_PinOutSet(MOTOR_PORT,MOTOR_PIN_1);
+}
 
+//motor pin 2 on
+void gpioMotorPin2On()
+{
+  GPIO_PinOutSet(MOTOR_PORT,MOTOR_PIN_2);
+}
+
+//motor pin enable on
+void gpioMotorEnOn()
+{
+  GPIO_PinOutSet(MOTOR_PORT,MOTOR_EN);
+}
+
+//motor pin enable off
+void gpioMotorEnOff()
+{
+  GPIO_PinOutClear(MOTOR_PORT,MOTOR_EN);
+}
+
+//motor pin 1 off
+void gpioMotorPin1Off()
+{
+  GPIO_PinOutClear(MOTOR_PORT,MOTOR_PIN_1);
+}
+
+//motor pin 2 on
+void gpioMotorPin2Off()
+{
+  GPIO_PinOutClear(MOTOR_PORT,MOTOR_PIN_2);
+}
+
+//Led0 off
 void gpioLed0SetOff()
 {
   GPIO_PinOutClear(LED0_port,LED0_pin);
 }
 
-
+//Led1 on
 void gpioLed1SetOn()
 {
   GPIO_PinOutSet(LED1_port,LED1_pin);
 }
 
-
+//Led1 off
 void gpioLed1SetOff()
 {
   GPIO_PinOutClear(LED1_port,LED1_pin);

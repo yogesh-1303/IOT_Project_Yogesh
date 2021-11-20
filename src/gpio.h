@@ -36,13 +36,37 @@
 #define PUSHBUTTON_PB1port gpioPortF
 #define PUSHBUTTON_PB1pin  7u
 
+#define MOTOR_PORT    gpioPortD
+#define MOTOR_PIN_1   12u               //P6
+#define MOTOR_PIN_2   11u               //P8
+#define MOTOR_EN      10u               //P4
 
 // Function prototypes
 void gpioInit();
+
 void gpioLed0SetOn();
 void gpioLed0SetOff();
 void gpioLed1SetOn();
 void gpioLed1SetOff();
+
+//sets the motor pin 2 on (logic 1)
+void gpioMotorPin2On();
+
+//sets the motor pin 1 on (logic 1)
+void gpioMotorPin1On();
+
+//sets the motor pin enable on (logic 1)
+void gpioMotorEnOn();
+
+//sets the motor pin 1 off (logic 0)
+void gpioMotorPin1Off();
+
+//sets the motor pin 2 off (logic 0)
+void gpioMotorPin2Off();
+
+//sets the motor pin enable off (logic 0)
+void gpioMotorEnOff();
+
 void gpioSetDisplayExtcomin(bool state);
 
 

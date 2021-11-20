@@ -91,7 +91,9 @@ SL_WEAK void app_init(void)
   // Initilaize GPIO by setting strength
   gpioInit();
   
-  // Initializes CMU by enabling and selecting appropriate oscillators
+  gpioMotorEnOn();
+
+  // Initializes  CMU by enabling and selecting appropriate oscillators
   Init_CMU();
 
   // Configures CMU by enabling and prescaling appropriate clocks
@@ -138,9 +140,9 @@ SL_WEAK void app_process_action(void)
   //         We will create/use a scheme that is far more energy efficient in
   //         later assignments.
 
-  //State_Machine();
-
-
+  //motor on off tasting with L298N driver
+  gpioMotorPin1On();
+  gpioMotorPin2Off();
 }
 
 /**************************************************************************//**
